@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Wanderly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="top-nav">
+        <a href="/" class="logo">Wanderly</a>
+        <div class="nav-links">
+            <a href="/" class="nav-btn">New Search</a>
+            <span class="user-greeting">Hi, {{ current_user.username }}</span>
+            <a href="/logout" class="nav-btn">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container profile-container">
+
+        <!-- Upcoming Trips Section -->
+        <section class="profile-section">
+            <div class="section-header">
+                <h2>Upcoming Trips</h2>
+                <button onclick="document.getElementById('add-trip-modal').style.display='block'" class="btn-small">+
+                    Add Trip</button>
+            </div>
+            <div class="trips-grid">
+                {% for trip in trips %}
+                <div class="trip-card" data-date="{{ trip.start_date }}">
+                    <h3>
+                        {% if trip.strategy_id %}
+                        <a href="/strategy/{{ trip.strategy_id }}" class="trip-link">{{ trip.destination }}</a>
+                        {% else %}
+                        {{ trip.destination }}
+                        {% endif %}
+                    </h3>
+                    <div class="countdown" id="countdown-{{ trip.id }}">Loading...</div>
+                    <p class="trip-dates">{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d,
+                        %Y') }}</p>
+                </div>
+                {% else %}
+                <p class="empty-state">No upcoming trips planned.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Saved Strategies Section -->
+        <section class="profile-section">
+            <h2>Saved Strategies</h2>
+            <div class="strategies-grid">
+                {% for strategy in saved %}
+                <a href="/strategy/{{ strategy.id }}" class="saved-strategy-card">
+                    <div class="score-badge-small">{{ strategy.score }}</div>
+                    <h3>{{ strategy.title }}</h3>
+                    <!-- Display summary from parsed content -->
+                    <p class="preview-text">{{ strategy.parsed_content.summary[:100] }}...</p>
+                </a>
+                {% else %}
+                <p class="empty-state">No strategies saved yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Search History Section -->
+        <section class="profile-section">
+            <h2>Recent Searches</h2>
+            <ul class="history-list">
+                {% for item in history %}
+                <li class="history-item">
+                    <span class="query">{{ item.search_query }}</span>
+                    <span class="date">{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    <!-- Add Trip Modal -->
+    <div id="add-trip-modal" class="modal">
+        <div class="modal-content">
+            <span onclick="document.getElementById('add-trip-modal').style.display='none'" class="close">&times;</span>
+            <h2>Add New Trip</h2>
+            <form action="/add_trip" method="POST">
+                <div class="input-group">
+                    <label>Destination</label>
+                    <input type="text" name="destination" required class="text-input">
+                </div>
+                <div class="input-group">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date" required class="text-input">
+                </div>
+                <div class="input-group">
+                    <label>End Date</label>
+                    <input type="date" name="end_date" required class="text-input">
+                </div>
+                <button type="submit" class="btn-primary">Save Trip</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Countdown Logic
+        document.querySelectorAll('.trip-card').forEach(card => {
+            const dateStr = card.getAttribute('data-date');
+            const targetDate = new Date(dateStr).getTime();
+            const countdownEl = card.querySelector('.countdown');
+
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    countdownEl.innerHTML = "Trip Started!";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                countdownEl.innerHTML = `${days} Days to go`;
+            };
+
+            updateTimer();
+            setInterval(updateTimer, 1000 * 60 * 60); // Update every hour is enough
+        });
+    </script>
+</body>
+
+</html>
