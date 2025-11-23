@@ -47,24 +47,6 @@
                 {% endfor %}
             </div>
         </section>
-
-        <!-- Saved Strategies Section -->
-        <section class="profile-section">
-            <h2>Saved Strategies</h2>
-            <div class="strategies-grid">
-                {% for strategy in saved %}
-                <a href="/strategy/{{ strategy.id }}" class="saved-strategy-card">
-                    <div class="score-badge-small">{{ strategy.score }}</div>
-                    <h3>{{ strategy.title }}</h3>
-                    <!-- Display summary from parsed content -->
-                    <p class="preview-text">{{ strategy.parsed_content.summary[:100] }}...</p>
-                </a>
-                {% else %}
-                <p class="empty-state">No strategies saved yet.</p>
-                {% endfor %}
-            </div>
-        </section>
-
         <!-- Search History Section -->
         <section class="profile-section">
             <h2>Recent Searches</h2>

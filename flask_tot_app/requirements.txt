@@ -1,7 +1,9 @@
 flask
-openai
+openai>=1.0.0
+anthropic
 python-dotenv
 flask-sqlalchemy
 flask-login
 email_validator
 werkzeug
+google-generativeai

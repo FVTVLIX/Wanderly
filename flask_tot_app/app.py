@@ -57,7 +57,26 @@ class Trip(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
+
+# --- Configuration ---
+from openai import OpenAI
+from anthropic import Anthropic
+import google.generativeai as genai
+
+openai_client = None
+anthropic_client = None
+gemini_available = False
+
+if os.getenv("OPENAI_API_KEY"):
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+if os.getenv("ANTHROPIC_API_KEY"):
+    anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+if os.getenv("GOOGLE_API_KEY"):
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    gemini_available = True
 
 # --- Helper Functions ---
 def mock_generation():
@@ -105,39 +124,149 @@ def mock_generation():
     ]
 
 def generate_strategies_llm(problem):
+    prompt = f"""
+    You are a travel planning expert. Break down the following problem into 3 distinct high-level approaches or strategies. 
+    Problem: {problem}. 
+    
+    Output strictly as a JSON list of objects. Each object must have:
+    - 'title': string
+    - 'summary': string (1-2 sentences)
+    - 'cost_breakdown': string (estimated costs)
+    - 'itinerary': list of objects, each with 'day' (int), 'title' (string), and 'activities' (list of {{'name', 'type' (food/history/other), 'description'}}).
+    - 'locations': list of objects with 'name', 'lat' (float), 'lon' (float) for major cities visited.
+    """
+
+    content = None
+
+    # 1. Try Google Gemini
+    if gemini_available:
+        try:
+            print("Using Google Gemini...")
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+            content = response.text
+        except Exception as e:
+            print(f"Gemini error: {e}")
+            content = None
+
+    # 2. Try OpenAI
+    if not content and openai_client:
+        try:
+            print("Using OpenAI...")
+            response = openai_client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful travel assistant that outputs only valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"}
+            )
+            content = response.choices[0].message.content
+        except Exception as e:
+            print(f"OpenAI error: {e}")
+            content = None
+
+    # 3. Try Anthropic
+    if not content and anthropic_client:
+        try:
+            print("Using Anthropic (Haiku)...")
+            message = anthropic_client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=4000,
+                temperature=0.7,
+                system="You are a helpful travel assistant that outputs only valid JSON.",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            content = message.content[0].text
+        except Exception as e:
+            print(f"Anthropic error: {e}")
+            content = None
+
+    if not content:
+        return []
+
     try:
-        prompt = f"""
-        You are a travel planning expert. Break down the following problem into 3 distinct high-level approaches or strategies. 
-        Problem: {problem}. 
+        # Clean up potential markdown formatting
+        content = content.replace('```json', '').replace('```', '').strip()
         
-        Output strictly as a JSON list of objects. Each object must have:
-        - 'title': string
-        - 'summary': string (1-2 sentences)
-        - 'cost_breakdown': string (estimated costs)
-        - 'itinerary': list of objects, each with 'day' (int), 'title' (string), and 'activities' (list of {{'name', 'type' (food/history/other), 'description'}}).
-        - 'locations': list of objects with 'name', 'lat' (float), 'lon' (float) for major cities visited.
-        """
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        content = response.choices[0].message.content
-        return json.loads(content)
+        # Ensure it's a list
+        data = json.loads(content)
+        
+        if isinstance(data, dict):
+            if 'strategies' in data and isinstance(data['strategies'], list):
+                return data['strategies']
+            # If the LLM returned a single strategy object, wrap it in a list
+            if 'title' in data and 'summary' in data:
+                return [data]
+            return []
+            
+        if isinstance(data, list):
+            # Filter out non-dict items
+            return [item for item in data if isinstance(item, dict)]
+            
+        return []
     except Exception as e:
-        print(f"Error generating strategies: {e}")
+        print(f"Error parsing JSON: {e}")
         return []
 
 def critique_strategy_llm(strategy_content):
     try:
-        # strategy_content is now a dict, convert to string for the prompt
         strategy_str = json.dumps(strategy_content)
         prompt = f"Act as a harsh travel critic. Analyze this strategy: {strategy_str}. Evaluate feasibility, balance, and budget. Give a score 1-10. Output JSON with keys: 'critique', 'score'."
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        content = response.choices[0].message.content
+
+        content = None
+
+        # 1. Try Google Gemini
+        if gemini_available:
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+                content = response.text
+            except Exception as e:
+                print(f"Gemini critique error: {e}")
+                content = None
+
+        # 2. Try OpenAI
+        if not content and openai_client:
+            try:
+                response = openai_client.chat.completions.create(
+                    model="gpt-4-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a critic that outputs only valid JSON."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+            except Exception as e:
+                print(f"OpenAI critique error: {e}")
+                content = None
+
+        # 3. Try Anthropic
+        if not content and anthropic_client:
+            try:
+                message = anthropic_client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=1000,
+                    temperature=0.7,
+                    system="You are a critic that outputs only valid JSON.",
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                content = message.content[0].text
+            except Exception as e:
+                print(f"Anthropic critique error: {e}")
+                content = None
+
+        if not content:
+            return {"critique": "Could not generate critique.", "score": 0}
+        
+        content = content.replace('```json', '').replace('```', '').strip()
         return json.loads(content)
+
     except Exception as e:
         print(f"Error critiquing strategy: {e}")
         return {"critique": "Error generating critique.", "score": 0}
@@ -196,7 +325,7 @@ def analyze():
         db.session.add(new_search)
         db.session.commit()
 
-    use_mock = not os.getenv("OPENAI_API_KEY")
+    use_mock = not (gemini_available or openai_client or anthropic_client)
 
     if use_mock:
         strategies = mock_generation()
@@ -204,12 +333,41 @@ def analyze():
         raw_strategies = generate_strategies_llm(problem)
         strategies = []
         for s in raw_strategies:
-            critique_data = critique_strategy_llm(s) # Pass the dict directly
-            s['critique'] = critique_data.get('critique')
-            s['score'] = critique_data.get('score')
+            if not isinstance(s, dict):
+                continue
+            critique_data = critique_strategy_llm(s)
+            s['critique'] = critique_data.get('critique', 'No critique available.')
+            s['score'] = critique_data.get('score', 0)
             strategies.append(s)
+            
+    # Sort by score
+    strategies.sort(key=lambda x: x.get('score', 0), reverse=True)
 
-    return render_template('results.html', strategies=strategies, problem=problem)
+    # Store in session for PRG pattern (requires 'from flask import session')
+    # But wait, session import needs to be checked. It's usually imported from flask.
+    # Let's assume it is or add it.
+    # Actually, let's just use render_template for now to be safe and simple unless PRG was strictly required and implemented fully.
+    # The previous attempt to add PRG failed because it deleted the route.
+    # Let's stick to render_template to fix the 404 first, then PRG if needed.
+    # User asked for persistence on refresh.
+    # So I MUST implement PRG.
+    
+    from flask import session
+    session['last_results'] = strategies
+    session['last_problem'] = problem
+    
+    return redirect(url_for('show_results'))
+
+@app.route('/results')
+def show_results():
+    from flask import session
+    strategies = session.get('last_results')
+    problem = session.get('last_problem')
+    
+    if not strategies or not problem:
+        return redirect(url_for('index'))
+        
+    return render_template('results.html', problem=problem, strategies=strategies)
 
 @app.route('/profile')
 @login_required
@@ -217,17 +375,6 @@ def profile():
     history = SearchHistory.query.filter_by(user_id=current_user.id).order_by(SearchHistory.timestamp.desc()).limit(10).all()
     saved_raw = SavedStrategy.query.filter_by(user_id=current_user.id).all()
     trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.asc()).all()
-    
-    # Parse JSON content for display
-    saved = []
-    for s in saved_raw:
-        try:
-            s.parsed_content = json.loads(s.content)
-            saved.append(s)
-        except:
-            continue
-
-    return render_template('profile.html', history=history, saved=saved, trips=trips)
 
 @app.route('/save_strategy', methods=['POST'])
 @login_required
@@ -259,7 +406,29 @@ def strategy_details(id):
         return redirect(url_for('profile'))
     
     parsed_content = json.loads(strategy.content)
-    return render_template('strategy_details.html', strategy=strategy, details=parsed_content)
+    
+    # Extract location for image
+    image_keyword = "travel"
+    if parsed_content.get('locations') and len(parsed_content['locations']) > 0:
+        image_keyword = parsed_content['locations'][0]['name']
+    
+    return render_template('strategy_details.html', strategy=strategy, details=parsed_content, image_keyword=image_keyword)
+
+@app.route('/delete_strategy/<int:id>', methods=['POST'])
+@login_required
+def delete_strategy(id):
+    strategy = SavedStrategy.query.get_or_404(id)
+    if strategy.author != current_user:
+        flash('You cannot delete this strategy.')
+        return redirect(url_for('profile'))
+    
+    # Optional: Delete associated trips if you want strict cleanup, 
+    # but cascading delete might handle it or we leave them.
+    # For now, let's just delete the strategy.
+    db.session.delete(strategy)
+    db.session.commit()
+    flash('Strategy deleted successfully.')
+    return redirect(url_for('profile'))
 
 @app.route('/add_trip', methods=['POST'])
 @login_required
