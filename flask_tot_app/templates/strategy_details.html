@@ -17,25 +17,6 @@
             {% if current_user.is_authenticated %}
             <a href="/profile" class="nav-btn">My Profile</a>
             <a href="/logout" class="nav-btn">Logout</a>
-            {% else %}
-            <a href="/login" class="nav-btn">Login</a>
-            <a href="/register" class="nav-btn">Sign Up</a>
-            {% endif %}
-        </div>
-    </nav>
-    <div class="hero-header">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <a href="/profile" class="back-link-white">← Back to Profile</a>
-            <h1>{{ strategy.title }}</h1>
-            <div class="score-badge-large">{{ strategy.score }}/10</div>
-        </div>
-    </div>
-
-    <div class="container details-container">
-
-        <div class="details-grid">
-            <!-- Left Column: Itinerary -->
             <div class="itinerary-section">
                 <h2>Trip Itinerary</h2>
                 <div class="timeline">
@@ -128,7 +109,7 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 </body>
 
 </html>
