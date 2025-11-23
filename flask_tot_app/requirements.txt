@@ -1,0 +1,7 @@
+flask
+openai
+python-dotenv
+flask-sqlalchemy
+flask-login
+email_validator
+werkzeug

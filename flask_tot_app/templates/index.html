@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanderly ToT Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="top-nav">
+        <a href="/" class="logo">Wanderly</a>
+        <div class="nav-links">
+            <a href="/" class="nav-btn">New Search</a>
+            {% if current_user.is_authenticated %}
+            <a href="/profile" class="nav-btn">My Profile</a>
+            <a href="/logout" class="nav-btn">Logout</a>
+            {% else %}
+            <a href="/login" class="nav-btn">Login</a>
+            <a href="/register" class="nav-btn">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Wanderly <span class="accent">AI</span></h1>
+            <p class="subtitle">Tree of Thoughts Travel Architect</p>
+        </header>
+
+        <main>
+            <form action="/analyze" method="POST" class="input-form">
+                <div class="input-group">
+                    <label for="problem">Describe your travel challenge:</label>
+                    <textarea id="problem" name="problem" rows="6"
+                        placeholder="E.g., Plan a 7-day trip to Japan for a foodie and a history buff with a $5000 budget..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Generate Strategies</button>
+            </form>
+        </main>
+    </div>
+</body>
+
+</html>

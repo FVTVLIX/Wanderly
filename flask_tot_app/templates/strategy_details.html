@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ strategy.title }} - Wanderly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="top-nav">
+        <a href="/" class="logo">Wanderly</a>
+        <div class="nav-links">
+            <a href="/" class="nav-btn">New Search</a>
+            {% if current_user.is_authenticated %}
+            <a href="/profile" class="nav-btn">My Profile</a>
+            <a href="/logout" class="nav-btn">Logout</a>
+            {% else %}
+            <a href="/login" class="nav-btn">Login</a>
+            <a href="/register" class="nav-btn">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="hero-header">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <a href="/profile" class="back-link-white">← Back to Profile</a>
+            <h1>{{ strategy.title }}</h1>
+            <div class="score-badge-large">{{ strategy.score }}/10</div>
+        </div>
+    </div>
+
+    <div class="container details-container">
+
+        <div class="details-grid">
+            <!-- Left Column: Itinerary -->
+            <div class="itinerary-section">
+                <h2>Trip Itinerary</h2>
+                <div class="timeline">
+                    {% for day in details.itinerary %}
+                    <div class="timeline-item">
+                        <div class="day-marker">Day {{ day.day }}</div>
+                        <div class="day-content">
+                            <h3>{{ day.title }}</h3>
+                            <ul class="activity-list">
+                                {% for activity in day.activities %}
+                                <li class="activity-item {{ activity.type }}">
+                                    <span class="activity-icon">
+                                        {% if activity.type == 'food' %}🍽️{% elif activity.type == 'history' %}🏛️{%
+                                        else %}📍{% endif %}
+                                    </span>
+                                    <div class="activity-info">
+                                        <strong>{{ activity.name }}</strong>
+                                        <p>{{ activity.description }}</p>
+                                        <a href="https://www.google.com/search?q={{ activity.name }}+{{ day.title }}"
+                                            target="_blank" class="info-link">More Info →</a>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Right Column: Map & Info -->
+            <div class="sidebar">
+                <!-- Schedule Trip Card -->
+                <div class="info-card schedule-card">
+                    {% if strategy.trips|length > 0 %}
+                    <h3>📅 Change Trip Date</h3>
+                    <p>This trip is currently scheduled.</p>
+                    <form action="/add_trip" method="POST">
+                        <input type="hidden" name="strategy_id" value="{{ strategy.id }}">
+                        <div class="input-group">
+                            <label>New Start Date</label>
+                            <!-- Pre-fill with the first trip's start date (formatted YYYY-MM-DD) -->
+                            <input type="date" name="start_date" required class="text-input"
+                                value="{{ strategy.trips[0].start_date.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <button type="submit" class="btn-primary">Update Date</button>
+                    </form>
+                    {% else %}
+                    <h3>📅 Schedule This Trip</h3>
+                    <p>Turn this strategy into an upcoming trip.</p>
+                    <form action="/add_trip" method="POST">
+                        <input type="hidden" name="strategy_id" value="{{ strategy.id }}">
+                        <div class="input-group">
+                            <label>Start Date</label>
+                            <input type="date" name="start_date" required class="text-input">
+                        </div>
+                        <button type="submit" class="btn-primary">Book It</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div class="info-card">
+                    <h3>Summary</h3>
+                    <p>{{ details.summary }}</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>Estimated Costs</h3>
+                    <p>{{ details.cost_breakdown }}</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>AI Critique</h3>
+                    <p>{{ strategy.critique }}</p>
+                </div>
+
+                <div class="map-card">
+                    <h3>Map Overview</h3>
+                    <!-- Using OpenStreetMap Embed for privacy/free usage -->
+                    {% if details.locations and details.locations|length > 0 %}
+                    <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox={{ details.locations[0].lon - 1 }}%2C{{ details.locations[0].lat - 1 }}%2C{{ details.locations[0].lon + 1 }}%2C{{ details.locations[0].lat + 1 }}&amp;layer=mapnik&amp;marker={{ details.locations[0].lat }}%2C{{ details.locations[0].lon }}">
+                    </iframe>
+                    <small><a
+                            href="https://www.openstreetmap.org/?mlat={{ details.locations[0].lat }}&amp;mlon={{ details.locations[0].lon }}#map=10/{{ details.locations[0].lat }}/{{ details.locations[0].lon }}"
+                            target="_blank">View Larger Map</a></small>
+                    {% else %}
+                    <div class="map-placeholder">Map data not available</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

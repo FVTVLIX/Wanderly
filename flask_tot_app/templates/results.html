@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Wanderly</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="top-nav">
+        <a href="/" class="logo">Wanderly</a>
+        <div class="nav-links">
+            <a href="/" class="nav-btn">New Search</a>
+            {% if current_user.is_authenticated %}
+            <a href="/profile" class="nav-btn">My Profile</a>
+            <a href="/logout" class="nav-btn">Logout</a>
+            {% else %}
+            <a href="/login" class="nav-btn">Login</a>
+            <a href="/register" class="nav-btn">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container results-container">
+        <header>
+            <a href="/" class="back-link">← New Search</a>
+            <h1>Strategic <span class="accent">Analysis</span></h1>
+            <p class="problem-summary">"{{ problem }}"</p>
+        </header>
+
+        <div class="tot-container">
+            {% for strategy in strategies %}
+            <div class="strategy-card">
+                <div class="card-header">
+                    <h2>{{ strategy.title }}</h2>
+                    <div class="score-badge">{{ strategy.score }}/10</div>
+                </div>
+                <div class="strategy-content">
+                    <h3>Summary</h3>
+                    <p>{{ strategy.summary }}</p>
+                    <h3>Cost Estimate</h3>
+                    <p class="cost-text">{{ strategy.cost_breakdown }}</p>
+                </div>
+                <div class="critique-section">
+                    <h3>AI Critique</h3>
+                    <p>{{ strategy.critique }}</p>
+                </div>
+                {% if current_user.is_authenticated %}
+                <button class="btn-secondary save-btn" data-title="{{ strategy.title }}"
+                    data-summary="{{ strategy.summary }}" data-cost="{{ strategy.cost_breakdown }}"
+                    data-itinerary='{{ strategy.itinerary | tojson | safe }}'
+                    data-locations='{{ strategy.locations | tojson | safe }}' data-critique="{{ strategy.critique }}"
+                    data-score="{{ strategy.score }}">
+                    Save to Profile
+                </button>
+                {% else %}
+                <p class="login-hint"><a href="/login">Login</a> to save this plan.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const data = {
+                    title: btn.dataset.title,
+                    summary: btn.dataset.summary,
+                    cost_breakdown: btn.dataset.cost,
+                    itinerary: JSON.parse(btn.dataset.itinerary),
+                    locations: JSON.parse(btn.dataset.locations),
+                    critique: btn.dataset.critique,
+                    score: btn.dataset.score
+                };
+
+                const response = await fetch('/save_strategy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    btn.textContent = 'Saved!';
+                    btn.disabled = true;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
