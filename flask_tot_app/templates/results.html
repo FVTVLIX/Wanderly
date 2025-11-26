@@ -4,90 +4,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Results - Wanderly</title>
+    <title>Results | Wanderly</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-    <nav class="top-nav">
-        <a href="/" class="logo">Wanderly</a>
-        <div class="nav-links">
-            <a href="/" class="nav-btn">New Search</a>
-            {% if current_user.is_authenticated %}
-            <a href="/profile" class="nav-btn">My Profile</a>
-            <a href="/logout" class="nav-btn">Logout</a>
-            {% else %}
-            <a href="/login" class="nav-btn">Login</a>
-            <a href="/register" class="nav-btn">Sign Up</a>
-            {% endif %}
-        </div>
-    </nav>
-    <div class="container results-container">
-        <header>
-            <a href="/" class="back-link">← New Search</a>
-            <h1>Strategic <span class="accent">Analysis</span></h1>
-            <p class="problem-summary">"{{ problem }}"</p>
-        </header>
 
-        <div class="tot-container">
-            {% for strategy in strategies %}
-            <div class="strategy-card">
-                <div class="card-header">
-                    <h2>{{ strategy.title }}</h2>
-                    <div class="score-badge">{{ strategy.score }}/10</div>
-                </div>
-                <div class="strategy-content">
-                    <h3>Summary</h3>
-                    <p>{{ strategy.summary }}</p>
-                    <h3>Cost Estimate</h3>
-                    <p class="cost-text">{{ strategy.cost_breakdown }}</p>
-                </div>
-                <div class="critique-section">
-                    <h3>AI Critique</h3>
-                    <p>{{ strategy.critique }}</p>
-                </div>
+    <!-- Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">New Search</a>
                 {% if current_user.is_authenticated %}
-                <button class="btn-secondary save-btn" data-title="{{ strategy.title }}"
-                    data-summary="{{ strategy.summary }}" data-cost="{{ strategy.cost_breakdown }}"
-                    data-itinerary='{{ strategy.itinerary | tojson | safe }}'
-                    data-locations='{{ strategy.locations | tojson | safe }}' data-critique="{{ strategy.critique }}"
-                    data-score="{{ strategy.score }}">
-                    Save to Profile
-                </button>
+                <a href="{{ url_for('profile') }}">My Profile</a>
                 {% else %}
-                <p class="login-hint"><a href="/login">Login</a> to save this plan.</p>
+                <a href="{{ url_for('login') }}">Login</a>
                 {% endif %}
             </div>
-            {% endfor %}
         </div>
+    </nav>
+
+    <div class="container">
+        <header class="results-header">
+            <p style="font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem;">
+                Strategic Analysis</p>
+            <h1 class="serif-italic" style="font-size: 4rem; transform: rotate(-1deg);">{{ problem }}</h1>
+        </header>
+
+        {% if not strategies %}
+        <div class="empty-state"
+            style="background: #FFF; padding: 3rem; border: 3px solid #000; text-align: center; max-width: 600px; margin: 0 auto; box-shadow: 8px 8px 0px #000;">
+            <h2 style="margin-bottom: 1rem;">No strategies generated.</h2>
+            <p style="margin-bottom: 2rem;">Please try again or refine your search.</p>
+            <a href="{{ url_for('index') }}" class="btn-primary">New Search</a>
+        </div>
+        {% endif %}
+
+        {% for strategy in strategies %}
+        <article class="strategy-card">
+            <div class="strategy-header">
+                <h2 style="font-size: 2rem;">{{ strategy.title }}</h2>
+                <div class="score-badge" style="background: #FFF; color: #000; transform: rotate(3deg);">{{
+                    strategy.score }}/10</div>
+            </div>
+
+            <div class="strategy-body">
+                <p style="font-size: 1.1rem; margin-bottom: 2rem; font-weight: 500;">{{ strategy.summary }}</p>
+
+                <div class="strategy-stats">
+                    <div class="stat-item">
+                        <i class="fa-solid fa-coins"></i>
+                        <span>Est. Cost: See Breakdown</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>{{ strategy.locations | length }} Stops</span>
+                    </div>
+                </div>
+
+                <div class="info-card" style="margin-bottom: 2rem; background: #f9f9f9;">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Cost Breakdown</h3>
+                    <p>{{ strategy.cost_breakdown }}</p>
+                </div>
+
+                <div class="info-card" style="margin-bottom: 2rem; background: #f9f9f9;">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">AI Critique</h3>
+                    <p>{{ strategy.critique }}</p>
+                </div>
+
+                <div style="text-align: right;">
+                    {% if current_user.is_authenticated %}
+                    <button onclick='saveStrategy({{ strategy | tojson }})' class="btn-primary">
+                        Save to Profile <i class="fa-regular fa-bookmark"></i>
+                    </button>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn-secondary-sm">Login to Save</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% endfor %}
     </div>
 
     <script>
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const data = {
-                    title: btn.dataset.title,
-                    summary: btn.dataset.summary,
-                    cost_breakdown: btn.dataset.cost,
-                    itinerary: JSON.parse(btn.dataset.itinerary),
-                    locations: JSON.parse(btn.dataset.locations),
-                    critique: btn.dataset.critique,
-                    score: btn.dataset.score
-                };
-
-                const response = await fetch('/save_strategy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+        function saveStrategy(strategyData) {
+            fetch('/save_strategy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(strategyData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Strategy saved to your profile!');
+                        window.location.href = "{{ url_for('profile') }}";
+                    }
                 });
-
-                if (response.ok) {
-                    btn.textContent = 'Saved!';
-                    btn.disabled = true;
-                }
-            });
-        });
+        }
     </script>
 </body>
 
