@@ -28,6 +28,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    openai_key = db.Column(db.String(200), nullable=True)
+    anthropic_key = db.Column(db.String(200), nullable=True)
+    gemini_key = db.Column(db.String(200), nullable=True)
     searches = db.relationship('SearchHistory', backref='author', lazy=True)
     saved_strategies = db.relationship('SavedStrategy', backref='author', lazy=True)
     trips = db.relationship('Trip', backref='author', lazy=True)
@@ -35,6 +38,7 @@ class User(UserMixin, db.Model):
 class SearchHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     search_query = db.Column(db.Text, nullable=False)
+    results = db.Column(db.Text, nullable=True) # Stores JSON string of search results
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
@@ -137,12 +141,18 @@ def generate_strategies_llm(problem):
     """
 
     content = None
+    
+    # Check for user-provided keys first
+    user_gemini_key = current_user.gemini_key if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
+    user_openai_key = current_user.openai_key if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
+    user_anthropic_key = current_user.anthropic_key if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
 
     # 1. Try Google Gemini
-    if gemini_available:
+    if user_gemini_key:
         try:
             print("Using Google Gemini...")
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            genai.configure(api_key=user_gemini_key)
+            model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
             content = response.text
         except Exception as e:
@@ -150,10 +160,11 @@ def generate_strategies_llm(problem):
             content = None
 
     # 2. Try OpenAI
-    if not content and openai_client:
+    if not content and user_openai_key:
         try:
             print("Using OpenAI...")
-            response = openai_client.chat.completions.create(
+            client = OpenAI(api_key=user_openai_key)
+            response = client.chat.completions.create(
                 model="gpt-4-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful travel assistant that outputs only valid JSON."},
@@ -167,10 +178,11 @@ def generate_strategies_llm(problem):
             content = None
 
     # 3. Try Anthropic
-    if not content and anthropic_client:
+    if not content and user_anthropic_key:
         try:
             print("Using Anthropic (Haiku)...")
-            message = anthropic_client.messages.create(
+            client = Anthropic(api_key=user_anthropic_key)
+            message = client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=4000,
                 temperature=0.7,
@@ -218,10 +230,16 @@ def critique_strategy_llm(strategy_content):
 
         content = None
 
+        # Check for user-provided keys first
+        user_gemini_key = current_user.gemini_key if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
+        user_openai_key = current_user.openai_key if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
+        user_anthropic_key = current_user.anthropic_key if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
+
         # 1. Try Google Gemini
-        if gemini_available:
+        if user_gemini_key:
             try:
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                genai.configure(api_key=user_gemini_key)
+                model = genai.GenerativeModel('gemini-pro')
                 response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
                 content = response.text
             except Exception as e:
@@ -229,9 +247,10 @@ def critique_strategy_llm(strategy_content):
                 content = None
 
         # 2. Try OpenAI
-        if not content and openai_client:
+        if not content and user_openai_key:
             try:
-                response = openai_client.chat.completions.create(
+                client = OpenAI(api_key=user_openai_key)
+                response = client.chat.completions.create(
                     model="gpt-4-turbo",
                     messages=[
                         {"role": "system", "content": "You are a critic that outputs only valid JSON."},
@@ -245,9 +264,10 @@ def critique_strategy_llm(strategy_content):
                 content = None
 
         # 3. Try Anthropic
-        if not content and anthropic_client:
+        if not content and user_anthropic_key:
             try:
-                message = anthropic_client.messages.create(
+                client = Anthropic(api_key=user_anthropic_key)
+                message = client.messages.create(
                     model="claude-3-haiku-20240307",
                     max_tokens=1000,
                     temperature=0.7,
@@ -318,18 +338,21 @@ def logout():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    problem = request.form.get('problem')
+    problem = request.form.get('problem') or request.form.get('query')
     
-    if current_user.is_authenticated:
-        new_search = SearchHistory(search_query=problem, user_id=current_user.id)
-        db.session.add(new_search)
-        db.session.commit()
-
-    use_mock = not (gemini_available or openai_client or anthropic_client)
-
+    # 1. Generate Strategies (Mock or Real)
+    # Check if ANY key is available (User or System)
+    has_gemini = (current_user.is_authenticated and current_user.gemini_key) or os.getenv("GOOGLE_API_KEY")
+    has_openai = (current_user.is_authenticated and current_user.openai_key) or os.getenv("OPENAI_API_KEY")
+    has_anthropic = (current_user.is_authenticated and current_user.anthropic_key) or os.getenv("ANTHROPIC_API_KEY")
+    
+    use_mock = not (has_gemini or has_openai or has_anthropic)
+    
     if use_mock:
+        print("Using mock generation (no keys available).")
         strategies = mock_generation()
     else:
+        print("Attempting LLM generation...")
         raw_strategies = generate_strategies_llm(problem)
         strategies = []
         for s in raw_strategies:
@@ -339,35 +362,37 @@ def analyze():
             s['critique'] = critique_data.get('critique', 'No critique available.')
             s['score'] = critique_data.get('score', 0)
             strategies.append(s)
+        
+        if not strategies:
+            print("LLM generation failed or returned empty. Falling back to mock data.")
+            flash("AI generation failed. Showing example strategies instead.", "warning")
+            strategies = mock_generation()
             
     # Sort by score
     strategies.sort(key=lambda x: x.get('score', 0), reverse=True)
+    
+    if current_user.is_authenticated:
+        new_search = SearchHistory(
+            search_query=problem, 
+            results=json.dumps(strategies),
+            user_id=current_user.id
+        )
+        db.session.add(new_search)
+        db.session.commit()
+        return redirect(url_for('show_results', search_id=new_search.id))
+    else:
+        # Fallback for anonymous users: render directly
+        return render_template('results.html', problem=problem, strategies=strategies)
 
-    # Store in session for PRG pattern (requires 'from flask import session')
-    # But wait, session import needs to be checked. It's usually imported from flask.
-    # Let's assume it is or add it.
-    # Actually, let's just use render_template for now to be safe and simple unless PRG was strictly required and implemented fully.
-    # The previous attempt to add PRG failed because it deleted the route.
-    # Let's stick to render_template to fix the 404 first, then PRG if needed.
-    # User asked for persistence on refresh.
-    # So I MUST implement PRG.
-    
-    from flask import session
-    session['last_results'] = strategies
-    session['last_problem'] = problem
-    
-    return redirect(url_for('show_results'))
-
-@app.route('/results')
-def show_results():
-    from flask import session
-    strategies = session.get('last_results')
-    problem = session.get('last_problem')
-    
-    if not strategies or not problem:
+@app.route('/results/<int:search_id>')
+@login_required
+def show_results(search_id):
+    search = SearchHistory.query.get_or_404(search_id)
+    if search.author != current_user:
         return redirect(url_for('index'))
         
-    return render_template('results.html', problem=problem, strategies=strategies)
+    strategies = json.loads(search.results) if search.results else []
+    return render_template('results.html', problem=search.search_query, strategies=strategies)
 
 @app.route('/profile')
 @login_required
@@ -375,6 +400,7 @@ def profile():
     history = SearchHistory.query.filter_by(user_id=current_user.id).order_by(SearchHistory.timestamp.desc()).limit(10).all()
     saved_raw = SavedStrategy.query.filter_by(user_id=current_user.id).all()
     trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.asc()).all()
+    return render_template('profile.html', trips=trips, saved_strategies=saved_raw, search_history=history)
 
 @app.route('/save_strategy', methods=['POST'])
 @login_required
@@ -483,6 +509,62 @@ def add_trip():
     db.session.add(new_trip)
     db.session.commit()
     return redirect(url_for('profile'))
+
+@app.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html')
+
+@app.route('/update_api_keys', methods=['POST'])
+@login_required
+def update_api_keys():
+    current_user.openai_key = request.form.get('openai_key')
+    current_user.anthropic_key = request.form.get('anthropic_key')
+    current_user.gemini_key = request.form.get('gemini_key')
+    db.session.commit()
+    flash('API Keys updated successfully.')
+    return redirect(url_for('settings'))
+
+@app.route('/verify_api_key', methods=['POST'])
+@login_required
+def verify_api_key():
+    data = request.json
+    provider = data.get('provider')
+    key = data.get('key')
+    
+    if not key:
+        return jsonify({'status': 'error', 'message': 'No key provided'})
+
+    try:
+        if provider == 'gemini':
+            genai.configure(api_key=key)
+            model = genai.GenerativeModel('gemini-pro')
+            # Simple generation test
+            model.generate_content("Hello", generation_config={"max_output_tokens": 5})
+            return jsonify({'status': 'success'})
+            
+        elif provider == 'openai':
+            client = OpenAI(api_key=key)
+            client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": "Hello"}],
+                max_tokens=5
+            )
+            return jsonify({'status': 'success'})
+            
+        elif provider == 'anthropic':
+            client = Anthropic(api_key=key)
+            client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=5,
+                messages=[{"role": "user", "content": "Hello"}]
+            )
+            return jsonify({'status': 'success'})
+            
+        return jsonify({'status': 'error', 'message': 'Invalid provider'})
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 if __name__ == '__main__':
     with app.app_context():

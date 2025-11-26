@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Wanderly</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">New Search</a>
+                <a href="{{ url_for('profile') }}">My Profile</a>
+                {% for message in messages %}
+                <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('update_api_keys') }}" method="POST">
+                <!-- Gemini -->
+                <div class="input-group">
+                    <label>Google Gemini API Key</label>
+                    <div class="input-wrapper" style="display: flex; gap: 0.5rem;">
+                        <input type="password" id="gemini_key" name="gemini_key"
+                            value="{{ current_user.gemini_key or '' }}" placeholder="AIzaSy..." style="flex: 1;">
+                        <button type="button" onclick="verifyKey('gemini')" class="btn-secondary-sm"
+                            style="color: #000; border-color: #000;">
+                            Verify
+                        </button>
+                    </div>
+                    <div id="gemini_status" class="status-msg" style="font-size: 0.8rem; margin-top: 0.5rem;"></div>
+                </div>
+
+                <!-- OpenAI -->
+                <div class="input-group">
+                    <label>OpenAI API Key</label>
+                    <div class="input-wrapper" style="display: flex; gap: 0.5rem;">
+                        <input type="password" id="openai_key" name="openai_key"
+                            value="{{ current_user.openai_key or '' }}" placeholder="sk-..." style="flex: 1;">
+                        <button type="button" onclick="verifyKey('openai')" class="btn-secondary-sm"
+                            style="color: #000; border-color: #000;">
+                            Verify
+                        </button>
+                    </div>
+                    <div id="openai_status" class="status-msg" style="font-size: 0.8rem; margin-top: 0.5rem;"></div>
+                </div>
+
+                <!-- Anthropic -->
+                <div class="input-group">
+                    <label>Anthropic API Key</label>
+                    <div class="input-wrapper" style="display: flex; gap: 0.5rem;">
+                        <input type="password" id="anthropic_key" name="anthropic_key"
+                            value="{{ current_user.anthropic_key or '' }}" placeholder="sk-ant-..." style="flex: 1;">
+                        <button type="button" onclick="verifyKey('anthropic')" class="btn-secondary-sm"
+                            style="color: #000; border-color: #000;">
+                            Verify
+                        </button>
+                    </div>
+                    <div id="anthropic_status" class="status-msg" style="font-size: 0.8rem; margin-top: 0.5rem;"></div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="margin-top: 2rem;">Save API Keys</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="{{ url_for('profile') }}" class="btn-secondary-sm"
+                    style="color: #000; border-color: #000;">Back to Profile</a>
+            </div>
+        </div>
+        </div>
+
+        <script>
+            function verifyKey(provider) {
+                const input = document.getElementById(`${provider}_key`);
+                const statusDiv = document.getElementById(`${provider}_status`);
+                const key = input.value;
+
+                if (!key) {
+                    statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Please enter a key first.</span>';
+                    return;
+                }
+
+                statusDiv.innerHTML = '<span style="color: #666;"><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>';
+
+                fetch('/verify_api_key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ provider: provider, key: key })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            statusDiv.innerHTML = '<span style="color: green; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Key Verified!</span>';
+                        } else {
+                            statusDiv.innerHTML = `<span style="color: red; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Error: ${data.message}</span>`;
+                        }
+                    })
+                    .catch(error => {
+                        statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Network Error</span>';
+                    });
+            }
+        </script>
+</body>
+
+</html>

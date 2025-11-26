@@ -4,50 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wanderly ToT Planner</title>
+    <title>Wanderly | AI Travel Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
+    <!-- Navigation -->
     <nav class="top-nav">
-        <a href="/" class="logo">Wanderly</a>
-        <div class="nav-links">
-            <a href="/" class="nav-btn">New Search</a>
-            {% if current_user.is_authenticated %}
-            <a href="/profile" class="nav-btn">My Profile</a>
-            <a href="/logout" class="nav-btn">Logout</a>
-            {% else %}
-            <a href="/login" class="nav-btn">Login</a>
-            <a href="/register" class="nav-btn">Sign Up</a>
-            {% endif %}
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">New Search</a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('profile') }}">My Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <header>
-            <h1>Wanderly <span class="accent">AI</span></h1>
-            <p class="subtitle">Tree of Thoughts Travel Architect</p>
-        </header>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">WHERE DREAMS BECOME JOURNEYS</h1>
+            <p class="hero-subtitle">Experience the world with AI-curated travel strategies designed just for you.</p>
 
-        <main>
-            <form action="/analyze" method="POST" class="input-form"
-                onsubmit="document.getElementById('loading-overlay').style.display='flex'">
-                <div class="input-group">
-                    <label for="problem">Describe your travel challenge:</label>
-                    <textarea id="problem" name="problem" rows="6"
-                        placeholder="E.g., Plan a 7-day trip to Japan for a foodie and a history buff with a $5000 budget..."></textarea>
+            <form action="{{ url_for('analyze') }}" method="POST" class="hero-search-form" id="searchForm">
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" name="query" placeholder="Where do you want to go?" required autocomplete="off">
+                    <button type="submit" class="btn-search">
+                        Let's Go <i class="fa-solid fa-arrow-right"></i>
+                    </button>
                 </div>
-                <button type="submit" class="btn-primary">Generate Strategies</button>
             </form>
-        </main>
-    </div>
+
+            <div class="hero-tags">
+                <span
+                    style="background: #000; color: #FFF; padding: 0.2rem 0.5rem; transform: rotate(-2deg);">Trending:</span>
+                <button type="button" onclick="fillSearch('Kyoto in Spring')">Kyoto</button>
+                <button type="button" onclick="fillSearch('Iceland Road Trip')">Iceland</button>
+                <button type="button" onclick="fillSearch('Amalfi Coast Luxury')">Amalfi</button>
+                <button type="button" onclick="fillSearch('Tokyo Food Tour')">Tokyo</button>
+            </div>
+        </div>
+    </section>
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="spinner"></div>
-        <p>Generating your travel strategies...</p>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h3 style="margin-top: 1rem; font-family: 'Anton', sans-serif; letter-spacing: 1px;">CRAFTING YOUR
+                JOURNEY...</h3>
+        </div>
     </div>
+
+    <script>
+        function fillSearch(text) {
+            const input = document.querySelector('input[name="query"]');
+            if (input) {
+                input.value = text;
+                input.focus();
+            }
+        }
+
+        const form = document.getElementById('searchForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+            });
+        }
+    </script>
 </body>
 
 </html>
