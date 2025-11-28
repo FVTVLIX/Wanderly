@@ -22,6 +22,23 @@
             <div class="nav-links">
                 <a href="{{ url_for('index') }}">New Search</a>
                 <a href="{{ url_for('profile') }}">My Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container profile-container">
+        <header class="profile-header" style="margin-bottom: 3rem; text-align: center;">
+            <h1 class="serif-italic" style="font-size: 3rem; transform: rotate(-1deg);">API Settings</h1>
+            <p style="color: var(--text-muted); margin-top: 1rem; font-weight: 500;">Manage your AI provider keys. Your
+                keys are prioritized over system defaults.</p>
+        </header>
+
+        <div class="auth-container" style="max-width: 600px; margin: 0 auto;">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flash-messages"
+                style="margin-bottom: 1rem; color: #000; text-align: center; font-weight: 700; background: #FFDAC1; padding: 0.5rem; border: 2px solid #000;">
                 {% for message in messages %}
                 <p>{{ message }}</p>
                 {% endfor %}
@@ -80,41 +97,41 @@
                     style="color: #000; border-color: #000;">Back to Profile</a>
             </div>
         </div>
-        </div>
+    </div>
 
-        <script>
-            function verifyKey(provider) {
-                const input = document.getElementById(`${provider}_key`);
-                const statusDiv = document.getElementById(`${provider}_status`);
-                const key = input.value;
+    <script>
+        function verifyKey(provider) {
+            const input = document.getElementById(`${provider}_key`);
+            const statusDiv = document.getElementById(`${provider}_status`);
+            const key = input.value;
 
-                if (!key) {
-                    statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Please enter a key first.</span>';
-                    return;
-                }
-
-                statusDiv.innerHTML = '<span style="color: #666;"><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>';
-
-                fetch('/verify_api_key', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ provider: provider, key: key })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            statusDiv.innerHTML = '<span style="color: green; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Key Verified!</span>';
-                        } else {
-                            statusDiv.innerHTML = `<span style="color: red; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Error: ${data.message}</span>`;
-                        }
-                    })
-                    .catch(error => {
-                        statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Network Error</span>';
-                    });
+            if (!key) {
+                statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Please enter a key first.</span>';
+                return;
             }
-        </script>
+
+            statusDiv.innerHTML = '<span style="color: #666;"><i class="fa-solid fa-spinner fa-spin"></i> Verifying...</span>';
+
+            fetch('/verify_api_key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ provider: provider, key: key })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        statusDiv.innerHTML = '<span style="color: green; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Key Verified!</span>';
+                    } else {
+                        statusDiv.innerHTML = `<span style="color: red; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Error: ${data.message}</span>`;
+                    }
+                })
+                .catch(error => {
+                    statusDiv.innerHTML = '<span style="color: red;"><i class="fa-solid fa-circle-xmark"></i> Network Error</span>';
+                });
+        }
+    </script>
 </body>
 
 </html>

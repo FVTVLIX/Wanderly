@@ -147,14 +147,17 @@ def generate_strategies_llm(problem):
     user_openai_key = current_user.openai_key if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
     user_anthropic_key = current_user.anthropic_key if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
 
+    print(f"Keys available - Gemini: {bool(user_gemini_key)}, OpenAI: {bool(user_openai_key)}, Anthropic: {bool(user_anthropic_key)}")
+
     # 1. Try Google Gemini
     if user_gemini_key:
         try:
             print("Using Google Gemini...")
             genai.configure(api_key=user_gemini_key)
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
             content = response.text
+            print("Gemini response received.")
         except Exception as e:
             print(f"Gemini error: {e}")
             content = None
@@ -173,6 +176,7 @@ def generate_strategies_llm(problem):
                 response_format={"type": "json_object"}
             )
             content = response.choices[0].message.content
+            print("OpenAI response received.")
         except Exception as e:
             print(f"OpenAI error: {e}")
             content = None
@@ -192,11 +196,13 @@ def generate_strategies_llm(problem):
                 ]
             )
             content = message.content[0].text
+            print("Anthropic response received.")
         except Exception as e:
             print(f"Anthropic error: {e}")
             content = None
 
     if not content:
+        print("No content generated from any provider.")
         return []
 
     try:
@@ -221,6 +227,7 @@ def generate_strategies_llm(problem):
         return []
     except Exception as e:
         print(f"Error parsing JSON: {e}")
+        print(f"Raw content: {content}")
         return []
 
 def critique_strategy_llm(strategy_content):
@@ -513,6 +520,7 @@ def add_trip():
 @app.route('/settings')
 @login_required
 def settings():
+    print("Accessing settings page...")
     return render_template('settings.html')
 
 @app.route('/update_api_keys', methods=['POST'])
