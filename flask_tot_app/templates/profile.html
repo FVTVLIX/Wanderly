@@ -28,6 +28,17 @@
     </nav>
 
     <div class="container profile-container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages"
+            style="margin-bottom: 1rem; color: #000; text-align: center; font-weight: 700; background: #FFDAC1; padding: 0.5rem; border: 2px solid #000;">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
         <header class="profile-header" style="margin-bottom: 3rem; text-align: center;">
             <h1 class="serif-italic" style="font-size: 3rem; transform: rotate(-1deg);">Welcome, {{
                 current_user.username }}</h1>
@@ -47,26 +58,8 @@
 
             {% if trips %}
             <div class="trips-grid">
-                {% for trip in trips %}
-                <div class="trip-card">
-                    <div class="card-header">
-                        <h3>{{ trip.destination }}</h3>
-                        <span class="score-badge">{{ trip.start_date.strftime('%b %d, %Y') }}</span>
-                    </div>
-                    <div class="countdown" id="countdown-{{ trip.id }}" data-date="{{ trip.start_date }}"
-                        style="font-size: 1.2rem; margin: 1rem 0;">
-                        <!-- JS will populate this -->
-                    </div>
-                    <a href="{{ url_for('strategy_details', id=trip.strategy_id) }}" class="btn-secondary-sm"
-                        style="width: 100%; text-align: center;">View Details</a>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p class="empty-state"
-                style="background: #FFF; padding: 2rem; border: 2px dashed #000; text-align: center; font-weight: 600;">
                 No upcoming trips scheduled.</p>
-            {% endif %}
+                {% endif %}
         </section>
 
         <!-- Saved Strategies -->
@@ -88,9 +81,12 @@
                     <div class="card-actions" style="display: flex; gap: 1rem;">
                         <a href="{{ url_for('strategy_details', id=item.id) }}" class="btn-primary-sm"
                             style="flex: 1; text-align: center;">View</a>
-                        <a href="{{ url_for('delete_strategy', id=item.id) }}" class="btn-secondary-sm"
-                            style="color: #ff4d4d; border-color: #ff4d4d;"
-                            onclick="return confirm('Are you sure?')">Delete</a>
+                        <form action="{{ url_for('delete_strategy', id=item.id) }}" method="POST"
+                            style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this strategy?');">
+                            <button type="submit" class="btn-secondary-sm"
+                                style="color: #ff4d4d; border-color: #ff4d4d; cursor: pointer; background: none; font-family: inherit; font-size: inherit;">Delete</button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
