@@ -4,108 +4,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Wanderly</title>
+    <title>My Profile | Wanderly</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
+
+    <!-- Navigation -->
     <nav class="top-nav">
-        <a href="/" class="logo">Wanderly</a>
-        <div class="nav-links">
-            <a href="/" class="nav-btn">New Search</a>
-            <span class="user-greeting">Hi, {{ current_user.username }}</span>
-            <a href="/logout" class="nav-btn">Logout</a>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">New Search</a>
+                <a href="{{ url_for('profile') }}">My Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+                <button id="darkModeToggle" class="btn-secondary-sm"
+                    style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
     <div class="container profile-container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages"
+            style="margin-bottom: 1rem; color: #000; text-align: center; font-weight: 700; background: #FFDAC1; padding: 0.5rem; border: 2px solid #000;">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
 
-        <!-- Upcoming Trips Section -->
-        <section class="profile-section">
-            <div class="section-header">
-                <h2>Upcoming Trips</h2>
-                <button onclick="document.getElementById('add-trip-modal').style.display='block'" class="btn-small">+
-                    Add Trip</button>
+        <header class="profile-header" style="margin-bottom: 3rem; text-align: center;">
+            <h1 class="serif-italic" style="font-size: 3rem; transform: rotate(-1deg);">Welcome, {{
+                current_user.username }}</h1>
+            <div style="margin-top: 1rem;">
+                <a href="{{ url_for('settings') }}" class="btn-secondary-sm" style="color: #000; border-color: #000;">
+                    <i class="fa-solid fa-gear"></i> API Settings
+                </a>
             </div>
+        </header>
+
+        <!-- Upcoming Trips -->
+        <section class="profile-section" style="margin-bottom: 4rem;">
+            <div class="section-header"
+                style="margin-bottom: 2rem; border-bottom: 4px solid #000; display: inline-block; padding-right: 2rem;">
+                <h2><i class="fa-solid fa-plane-departure"></i> Upcoming Trips</h2>
+            </div>
+
+            {% if trips %}
             <div class="trips-grid">
                 {% for trip in trips %}
-                <div class="trip-card" data-date="{{ trip.start_date }}">
-                    <h3>
-                        {% if trip.strategy_id %}
-                        <a href="/strategy/{{ trip.strategy_id }}" class="trip-link">{{ trip.destination }}</a>
-                        {% else %}
-                        {{ trip.destination }}
+                <div class="trip-card">
+                    <div class="card-header">
+                        <h3 style="font-size: 1.2rem;">{{ trip.destination }}</h3>
+                        <div class="countdown" data-date="{{ trip.start_date.strftime('%Y-%m-%d') }}"
+                            style="background: #000; color: #FFF; padding: 0.2rem 0.5rem; font-weight: 700; transform: rotate(2deg);">
+                            Calculating...
+                        </div>
+                    </div>
+                    <p style="font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="fa-regular fa-calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }} - {{
+                        trip.end_date.strftime('%b %d, %Y') }}
+                    </p>
+                    {% if trip.strategy %}
+                    <p style="font-size: 0.9rem; margin-bottom: 1rem;">Based on: <a
+                            href="{{ url_for('strategy_details', id=trip.strategy.id) }}"
+                            style="text-decoration: underline;">{{ trip.strategy.title }}</a></p>
+                    {% endif %}
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        {% if trip.strategy %}
+                        <a href="{{ url_for('strategy_details', id=trip.strategy.id) }}" class="btn-primary-sm"
+                            style="flex: 1; text-align: center; display: block;">View Itinerary</a>
                         {% endif %}
-                    </h3>
-                    <div class="countdown" id="countdown-{{ trip.id }}">Loading...</div>
-                    <p class="trip-dates">{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d,
-                        %Y') }}</p>
+                        <form action="{{ url_for('delete_trip', id=trip.id) }}" method="POST" style="flex: 1;"
+                            onsubmit="return confirm('Are you sure you want to cancel this trip?');">
+                            <button type="submit" class="btn-secondary-sm"
+                                style="width: 100%; color: #ff4d4d; border-color: #ff4d4d; cursor: pointer;">Cancel
+                                Trip</button>
+                        </form>
+                    </div>
                 </div>
-                {% else %}
-                <p class="empty-state">No upcoming trips planned.</p>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-state"
+                style="background: #FFF; padding: 2rem; border: 2px dashed #000; text-align: center; font-weight: 600;">
+                No upcoming trips scheduled.
+            </p>
+            {% endif %}
+        </section>
+
+        <!-- Saved Strategies -->
+        <section class="profile-section" style="margin-bottom: 4rem;">
+            <div class="section-header"
+                style="margin-bottom: 2rem; border-bottom: 4px solid #000; display: inline-block; padding-right: 2rem;">
+                <h2><i class="fa-regular fa-bookmark"></i> Saved Strategies</h2>
+            </div>
+
+            {% if saved_strategies %}
+            <div class="strategies-grid">
+                {% for item in saved_strategies %}
+                <div class="saved-strategy-card">
+                    <div class="card-header">
+                        <h3 style="font-size: 1.2rem;">{{ item.title }}</h3>
+                        <div class="score-badge">{{ item.score }}/10</div>
+                    </div>
+                    <p class="preview-text" style="font-size: 0.9rem; margin-bottom: 1rem;">{{ item.summary }}</p>
+                    <div class="card-actions" style="display: flex; gap: 1rem;">
+                        <a href="{{ url_for('strategy_details', id=item.id) }}" class="btn-primary-sm"
+                            style="flex: 1; text-align: center;">View</a>
+                        <form action="{{ url_for('delete_strategy', id=item.id) }}" method="POST"
+                            style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this strategy?');">
+                            <button type="submit" class="btn-secondary-sm"
+                                style="color: #ff4d4d; border-color: #ff4d4d; cursor: pointer; background: none; font-family: inherit; font-size: inherit;">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-state"
+                style="background: #FFF; padding: 2rem; border: 2px dashed #000; text-align: center; font-weight: 600;">
+                No saved strategies yet.</p>
+            {% endif %}
+        </section>
+
+        <!-- Search History -->
+        <section class="profile-section">
+            <div class="section-header"
+                style="margin-bottom: 2rem; border-bottom: 4px solid #000; display: inline-block; padding-right: 2rem;">
+                <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Searches</h2>
+            </div>
+
+            <div class="history-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for item in search_history %}
+                <div class="history-item" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600;">{{ item.search_query }}</span>
+                    <span
+                        style="color: #666; font-size: 0.9rem; background: #eee; padding: 0.2rem 0.5rem; border: 1px solid #000;">{{
+                        item.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
                 {% endfor %}
             </div>
         </section>
-        <!-- Search History Section -->
-        <section class="profile-section">
-            <h2>Recent Searches</h2>
-            <ul class="history-list">
-                {% for item in history %}
-                <li class="history-item">
-                    <span class="query">{{ item.search_query }}</span>
-                    <span class="date">{{ item.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </section>
-    </div>
-
-    <!-- Add Trip Modal -->
-    <div id="add-trip-modal" class="modal">
-        <div class="modal-content">
-            <span onclick="document.getElementById('add-trip-modal').style.display='none'" class="close">&times;</span>
-            <h2>Add New Trip</h2>
-            <form action="/add_trip" method="POST">
-                <div class="input-group">
-                    <label>Destination</label>
-                    <input type="text" name="destination" required class="text-input">
-                </div>
-                <div class="input-group">
-                    <label>Start Date</label>
-                    <input type="date" name="start_date" required class="text-input">
-                </div>
-                <div class="input-group">
-                    <label>End Date</label>
-                    <input type="date" name="end_date" required class="text-input">
-                </div>
-                <button type="submit" class="btn-primary">Save Trip</button>
-            </form>
-        </div>
     </div>
 
     <script>
-        // Countdown Logic
-        document.querySelectorAll('.trip-card').forEach(card => {
-            const dateStr = card.getAttribute('data-date');
-            const targetDate = new Date(dateStr).getTime();
-            const countdownEl = card.querySelector('.countdown');
+        // Dark Mode Logic
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
 
-            const updateTimer = () => {
-                const now = new Date().getTime();
-                const distance = targetDate - now;
+        // Check local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
 
-                if (distance < 0) {
-                    countdownEl.innerHTML = "Trip Started!";
-                    return;
-                }
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
 
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                countdownEl.innerHTML = `${days} Days to go`;
-            };
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
 
-            updateTimer();
-            setInterval(updateTimer, 1000 * 60 * 60); // Update every hour is enough
+        // Simple countdown logic
+        document.querySelectorAll('.countdown').forEach(el => {
+            const targetDate = new Date(el.dataset.date).getTime();
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+
+            if (diff > 0) {
+                const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                el.innerText = `${days} DAYS TO GO!`;
+                el.style.fontWeight = '800';
+                el.style.fontFamily = "'Anton', sans-serif";
+            } else {
+                el.innerText = "TRIP STARTED!";
+                el.style.fontFamily = "'Anton', sans-serif";
+            }
         });
     </script>
 </body>

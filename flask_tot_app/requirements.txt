@@ -7,3 +7,4 @@ flask-login
 email_validator
 werkzeug
 google-generativeai
+cryptography

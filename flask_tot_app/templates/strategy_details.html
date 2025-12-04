@@ -4,112 +4,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ strategy.title }} - Wanderly</title>
+    <title>{{ strategy.title }} | Wanderly</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
+
+    <!-- Navigation -->
     <nav class="top-nav">
-        <a href="/" class="logo">Wanderly</a>
-        <div class="nav-links">
-            <a href="/" class="nav-btn">New Search</a>
-            {% if current_user.is_authenticated %}
-            <a href="/profile" class="nav-btn">My Profile</a>
-            <a href="/logout" class="nav-btn">Logout</a>
-            <div class="itinerary-section">
-                <h2>Trip Itinerary</h2>
-                <div class="timeline">
-                    {% for day in details.itinerary %}
-                    <div class="timeline-item">
-                        <div class="day-marker">Day {{ day.day }}</div>
-                        <div class="day-content">
-                            <h3>{{ day.title }}</h3>
-                            <ul class="activity-list">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">New Search</a>
+                <a href="{{ url_for('profile') }}">My Profile</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+                <button id="darkModeToggle" class="btn-secondary-sm"
+                    style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="details-header" style="text-align: center; margin-bottom: 3rem;">
+            <h1 class="serif-italic" style="font-size: 3.5rem; transform: rotate(-1deg);">{{ strategy.title }}</h1>
+            <div class="score-badge"
+                style="display: inline-block; font-size: 1.5rem; margin-top: 1rem; transform: rotate(2deg);">
+                SCORE: {{ strategy.score }}/10
+            </div>
+        </header>
+
+        <div class="details-grid">
+            <!-- Left Column: Itinerary -->
+            <div class="itinerary-column">
+                <section class="info-card">
+                    <h2 style="margin-bottom: 2rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem;">Daily
+                        Itinerary</h2>
+
+                    <div class="activity-list">
+                        {% for day in details.itinerary %}
+                        <div class="activity-item">
+                            <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Day {{ day.day }}: {{ day.title }}
+                            </h3>
+                            <ul style="list-style: none;">
                                 {% for activity in day.activities %}
-                                <li class="activity-item {{ activity.type }}">
-                                    <span class="activity-icon">
-                                        {% if activity.type == 'food' %}🍽️{% elif activity.type == 'history' %}🏛️{%
-                                        else %}📍{% endif %}
-                                    </span>
-                                    <div class="activity-info">
-                                        <strong>{{ activity.name }}</strong>
-                                        <p>{{ activity.description }}</p>
-                                        <a href="https://www.google.com/search?q={{ activity.name }}+{{ day.title }}"
-                                            target="_blank" class="info-link">More Info →</a>
+                                <li
+                                    style="margin-bottom: 1rem; background: #f9f9f9; padding: 1rem; border: 1px solid #000; box-shadow: 2px 2px 0px #000;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                        <div>
+                                            <strong style="display: block; font-size: 1.1rem;">{{ activity.name
+                                                }}</strong>
+                                            <span
+                                                style="font-size: 0.9rem; color: #666; text-transform: uppercase; font-weight: 700;">{{
+                                                activity.type }}</span>
+                                        </div>
+                                        <a href="https://www.google.com/search?q={{ activity.name }} {{ day.title }}"
+                                            target="_blank" class="btn-secondary-sm"
+                                            style="font-size: 0.8rem; padding: 0.2rem 0.5rem; white-space: nowrap;">
+                                            <i class="fa-brands fa-google"></i> Search
+                                        </a>
                                     </div>
+                                    <p style="margin-top: 0.5rem;">{{ activity.description }}</p>
                                 </li>
                                 {% endfor %}
                             </ul>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
+                </section>
             </div>
 
-            <!-- Right Column: Map & Info -->
-            <div class="sidebar">
-                <!-- Schedule Trip Card -->
-                <div class="info-card schedule-card">
-                    {% if strategy.trips|length > 0 %}
-                    <h3>📅 Change Trip Date</h3>
-                    <p>This trip is currently scheduled.</p>
-                    <form action="/add_trip" method="POST">
+            <!-- Right Column: Map & Actions -->
+            <div class="sidebar-column">
+                <!-- Map Card -->
+                <div class="map-card">
+                    <h3 style="margin-bottom: 1rem;">Destinations</h3>
+                    <div id="map" style="height: 300px; background: #eee; border: 2px solid #000;"></div>
+                    <div style="margin-top: 1rem;">
+                        {% for loc in details.locations %}
+                        <span
+                            style="display: inline-block; background: #000; color: #FFF; padding: 0.2rem 0.5rem; margin: 0.2rem; font-size: 0.9rem; font-weight: 700;">{{
+                            loc.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Trip Planning Card -->
+                <div class="info-card" style="background: #FFDAC1;">
+                    <h3 style="margin-bottom: 1rem;">Plan This Trip</h3>
+                    <form action="{{ url_for('add_trip') }}" method="POST">
                         <input type="hidden" name="strategy_id" value="{{ strategy.id }}">
-                        <div class="input-group">
-                            <label>New Start Date</label>
-                            <!-- Pre-fill with the first trip's start date (formatted YYYY-MM-DD) -->
-                            <input type="date" name="start_date" required class="text-input"
-                                value="{{ strategy.trips[0].start_date.strftime('%Y-%m-%d') }}">
-                        </div>
-                        <button type="submit" class="btn-primary">Update Date</button>
-                    </form>
-                    {% else %}
-                    <h3>📅 Schedule This Trip</h3>
-                    <p>Turn this strategy into an upcoming trip.</p>
-                    <form action="/add_trip" method="POST">
-                        <input type="hidden" name="strategy_id" value="{{ strategy.id }}">
+                        <input type="hidden" name="destination" value="{{ strategy.title }}">
+
                         <div class="input-group">
                             <label>Start Date</label>
-                            <input type="date" name="start_date" required class="text-input">
+                            <div class="input-wrapper" style="background: #FFF;">
+                                <input type="date" name="start_date" required>
+                            </div>
                         </div>
-                        <button type="submit" class="btn-primary">Book It</button>
+
+                        <button type="submit" class="btn-primary" style="width: 100%;">Add to Calendar</button>
                     </form>
-                    {% endif %}
                 </div>
 
-                <div class="info-card">
-                    <h3>Summary</h3>
-                    <p>{{ details.summary }}</p>
-                </div>
-
-                <div class="info-card">
-                    <h3>Estimated Costs</h3>
-                    <p>{{ details.cost_breakdown }}</p>
-                </div>
-
-                <div class="info-card">
-                    <h3>AI Critique</h3>
-                    <p>{{ strategy.critique }}</p>
-                </div>
-
-                <div class="map-card">
-                    <h3>Map Overview</h3>
-                    <!-- Using OpenStreetMap Embed for privacy/free usage -->
-                    {% if details.locations and details.locations|length > 0 %}
-                    <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
-                        src="https://www.openstreetmap.org/export/embed.html?bbox={{ details.locations[0].lon - 1 }}%2C{{ details.locations[0].lat - 1 }}%2C{{ details.locations[0].lon + 1 }}%2C{{ details.locations[0].lat + 1 }}&amp;layer=mapnik&amp;marker={{ details.locations[0].lat }}%2C{{ details.locations[0].lon }}">
-                    </iframe>
-                    <small><a
-                            href="https://www.openstreetmap.org/?mlat={{ details.locations[0].lat }}&amp;mlon={{ details.locations[0].lon }}#map=10/{{ details.locations[0].lat }}/{{ details.locations[0].lon }}"
-                            target="_blank">View Larger Map</a></small>
-                    {% else %}
-                    <div class="map-placeholder">Map data not available</div>
-                    {% endif %}
+                <!-- Delete Button -->
+                <div style="margin-top: 2rem; text-align: center;">
+                    <form action="{{ url_for('delete_strategy', id=strategy.id) }}" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete this strategy?');">
+                        <button type="submit" class="btn-secondary-sm"
+                            style="color: #ff4d4d; border-color: #ff4d4d; width: 100%; display: block; cursor: pointer;">Delete
+                            Strategy</button>
+                    </form>
                 </div>
             </div>
         </div>
-        </div>
+    </div>
+
+    <!-- Leaflet JS (OpenSource Map) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Dark Mode Logic
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
+
+        // Check local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
+        // Initialize Map
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var locations = {{ details.locations | tojson }};
+        var bounds = [];
+
+        locations.forEach(function (loc) {
+            if (loc.lat && loc.lon) {
+                L.marker([loc.lat, loc.lon]).addTo(map)
+                    .bindPopup(loc.name);
+                bounds.push([loc.lat, loc.lon]);
+            }
+        });
+
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    </script>
 </body>
 
 </html>
