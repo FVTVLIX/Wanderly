@@ -26,6 +26,10 @@
                 {% else %}
                 <a href="{{ url_for('login') }}">Login</a>
                 {% endif %}
+                <button id="darkModeToggle" class="btn-secondary-sm"
+                    style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -70,7 +74,25 @@
 
                 <div class="info-card" style="margin-bottom: 2rem; background: #f9f9f9;">
                     <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Cost Breakdown</h3>
+                    {% if strategy.cost_breakdown is mapping %}
+                    <table style="width: 100%; border-collapse: collapse;">
+                        {% for category, amount in strategy.cost_breakdown.items() %}
+                        {% if category != 'currency' and category != 'total' %}
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 0.5rem 0; text-transform: capitalize;">{{ category }}</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">{{ amount }}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                        <tr style="border-top: 2px solid #000;">
+                            <td style="padding: 0.5rem 0; font-weight: 700;">TOTAL</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 700;">{{
+                                strategy.cost_breakdown.get('total', 'N/A') }}</td>
+                        </tr>
+                    </table>
+                    {% else %}
                     <p>{{ strategy.cost_breakdown }}</p>
+                    {% endif %}
                 </div>
 
                 <div class="info-card" style="margin-bottom: 2rem; background: #f9f9f9;">
@@ -93,6 +115,32 @@
     </div>
 
     <script>
+        // Dark Mode Logic
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
+
+        // Check local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
         function saveStrategy(strategyData) {
             fetch('/save_strategy', {
                 method: 'POST',

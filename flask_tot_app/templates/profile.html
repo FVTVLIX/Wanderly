@@ -23,6 +23,10 @@
                 <a href="{{ url_for('index') }}">New Search</a>
                 <a href="{{ url_for('profile') }}">My Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
+                <button id="darkModeToggle" class="btn-secondary-sm"
+                    style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -58,8 +62,46 @@
 
             {% if trips %}
             <div class="trips-grid">
-                No upcoming trips scheduled.</p>
-                {% endif %}
+                {% for trip in trips %}
+                <div class="trip-card">
+                    <div class="card-header">
+                        <h3 style="font-size: 1.2rem;">{{ trip.destination }}</h3>
+                        <div class="countdown" data-date="{{ trip.start_date.strftime('%Y-%m-%d') }}"
+                            style="background: #000; color: #FFF; padding: 0.2rem 0.5rem; font-weight: 700; transform: rotate(2deg);">
+                            Calculating...
+                        </div>
+                    </div>
+                    <p style="font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="fa-regular fa-calendar"></i> {{ trip.start_date.strftime('%b %d, %Y') }} - {{
+                        trip.end_date.strftime('%b %d, %Y') }}
+                    </p>
+                    {% if trip.strategy %}
+                    <p style="font-size: 0.9rem; margin-bottom: 1rem;">Based on: <a
+                            href="{{ url_for('strategy_details', id=trip.strategy.id) }}"
+                            style="text-decoration: underline;">{{ trip.strategy.title }}</a></p>
+                    {% endif %}
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        {% if trip.strategy %}
+                        <a href="{{ url_for('strategy_details', id=trip.strategy.id) }}" class="btn-primary-sm"
+                            style="flex: 1; text-align: center; display: block;">View Itinerary</a>
+                        {% endif %}
+                        <form action="{{ url_for('delete_trip', id=trip.id) }}" method="POST" style="flex: 1;"
+                            onsubmit="return confirm('Are you sure you want to cancel this trip?');">
+                            <button type="submit" class="btn-secondary-sm"
+                                style="width: 100%; color: #ff4d4d; border-color: #ff4d4d; cursor: pointer;">Cancel
+                                Trip</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-state"
+                style="background: #FFF; padding: 2rem; border: 2px dashed #000; text-align: center; font-weight: 600;">
+                No upcoming trips scheduled.
+            </p>
+            {% endif %}
         </section>
 
         <!-- Saved Strategies -->
@@ -119,6 +161,32 @@
     </div>
 
     <script>
+        // Dark Mode Logic
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
+
+        // Check local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
         // Simple countdown logic
         document.querySelectorAll('.countdown').forEach(el => {
             const targetDate = new Date(el.dataset.date).getTime();

@@ -23,6 +23,10 @@
                 <a href="{{ url_for('index') }}">New Search</a>
                 <a href="{{ url_for('profile') }}">My Profile</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
+                <button id="darkModeToggle" class="btn-secondary-sm"
+                    style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -52,10 +56,21 @@
                                 {% for activity in day.activities %}
                                 <li
                                     style="margin-bottom: 1rem; background: #f9f9f9; padding: 1rem; border: 1px solid #000; box-shadow: 2px 2px 0px #000;">
-                                    <strong style="display: block; font-size: 1.1rem;">{{ activity.name }}</strong>
-                                    <span
-                                        style="font-size: 0.9rem; color: #666; text-transform: uppercase; font-weight: 700;">{{
-                                        activity.type }}</span>
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                        <div>
+                                            <strong style="display: block; font-size: 1.1rem;">{{ activity.name
+                                                }}</strong>
+                                            <span
+                                                style="font-size: 0.9rem; color: #666; text-transform: uppercase; font-weight: 700;">{{
+                                                activity.type }}</span>
+                                        </div>
+                                        <a href="https://www.google.com/search?q={{ activity.name }} {{ day.title }}"
+                                            target="_blank" class="btn-secondary-sm"
+                                            style="font-size: 0.8rem; padding: 0.2rem 0.5rem; white-space: nowrap;">
+                                            <i class="fa-brands fa-google"></i> Search
+                                        </a>
+                                    </div>
                                     <p style="margin-top: 0.5rem;">{{ activity.description }}</p>
                                 </li>
                                 {% endfor %}
@@ -101,9 +116,12 @@
 
                 <!-- Delete Button -->
                 <div style="margin-top: 2rem; text-align: center;">
-                    <a href="{{ url_for('delete_strategy', id=strategy.id) }}" class="btn-secondary-sm"
-                        style="color: #ff4d4d; border-color: #ff4d4d; width: 100%; display: block;"
-                        onclick="return confirm('Are you sure you want to delete this strategy?')">Delete Strategy</a>
+                    <form action="{{ url_for('delete_strategy', id=strategy.id) }}" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete this strategy?');">
+                        <button type="submit" class="btn-secondary-sm"
+                            style="color: #ff4d4d; border-color: #ff4d4d; width: 100%; display: block; cursor: pointer;">Delete
+                            Strategy</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -113,6 +131,32 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Dark Mode Logic
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
+
+        // Check local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
         // Initialize Map
         var map = L.map('map').setView([0, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -31,6 +31,190 @@
     --font-body: 'Inter', sans-serif;
 }
 
+body.dark-mode {
+    --bg-main: #1a1a1a;
+    --text-main: #e0e0e0;
+    --bg-card: #2d2d2d;
+    --accent-1: #4a4a4a;
+    --accent-2: #333333;
+    --accent-3: #555555;
+    --accent-4: #666666;
+    --border-thick: 3px solid #e0e0e0;
+    --border-thin: 2px solid #e0e0e0;
+    --shadow-hard: 6px 6px 0px #e0e0e0;
+    --shadow-hover: 2px 2px 0px #e0e0e0;
+}
+
+body.dark-mode .hero-title {
+    text-shadow: 4px 4px 0px #000000;
+}
+
+body.dark-mode .nav-container {
+    background: #e0e0e0;
+}
+
+body.dark-mode .nav-logo,
+body.dark-mode .nav-links a {
+    color: #000000;
+}
+
+body.dark-mode .nav-links a:hover {
+    color: var(--bg-main);
+}
+
+body.dark-mode .hero-subtitle {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-mode .input-wrapper {
+    background: #2d2d2d;
+}
+
+body.dark-mode input {
+    color: #e0e0e0;
+}
+
+body.dark-mode input::placeholder {
+    color: #aaaaaa;
+}
+
+body.dark-mode .search-icon {
+    color: #e0e0e0;
+}
+
+body.dark-mode .btn-search {
+    background: #e0e0e0;
+    color: #000000;
+}
+
+body.dark-mode .btn-search:hover {
+    background: #cccccc;
+}
+
+body.dark-mode .btn-primary {
+    background: #e0e0e0;
+    color: #000000;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .btn-primary:hover {
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .hero-tags button {
+    background: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #e0e0e0;
+    box-shadow: 3px 3px 0px #e0e0e0;
+}
+
+body.dark-mode .hero-tags button:hover {
+    background: #444;
+    box-shadow: 1px 1px 0px #e0e0e0;
+}
+
+body.dark-mode .strategy-header {
+    background: #e0e0e0;
+    color: #000000;
+}
+
+body.dark-mode .score-badge {
+    background: #000000;
+    color: #e0e0e0;
+}
+
+body.dark-mode .strategy-stats {
+    background: #333;
+    border-color: #e0e0e0;
+}
+
+body.dark-mode .info-card {
+    background: #333 !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode .card-header {
+    border-color: #e0e0e0;
+}
+
+body.dark-mode .activity-list {
+    border-color: #e0e0e0;
+}
+
+body.dark-mode .activity-item::before {
+    background: #e0e0e0;
+}
+
+body.dark-mode .activity-item li {
+    background: #333 !important;
+    border-color: #e0e0e0 !important;
+    box-shadow: 2px 2px 0px #e0e0e0 !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode .activity-item li span {
+    color: #cccccc !important;
+}
+
+body.dark-mode .auth-container {
+    background: #2d2d2d;
+}
+
+body.dark-mode .btn-secondary-sm {
+    background: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #e0e0e0;
+}
+
+body.dark-mode .btn-secondary-sm:hover {
+    background: #444;
+}
+
+body.dark-mode .loading-overlay {
+    background: rgba(26, 26, 26, 0.95);
+}
+
+body.dark-mode .spinner {
+    border: 8px solid #333;
+    border-top: 8px solid #e0e0e0;
+}
+
+body.dark-mode .empty-state {
+    background: #2d2d2d !important;
+    border-color: #e0e0e0 !important;
+    box-shadow: 8px 8px 0px #e0e0e0 !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode .flash-messages {
+    background: #4a4a4a !important;
+    border-color: #e0e0e0 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode #map {
+    border-color: #e0e0e0 !important;
+}
+
+body.dark-mode table tr {
+    border-color: #555 !important;
+}
+
+body.dark-mode table tr:last-child {
+    border-top-color: #e0e0e0 !important;
+}
+
+body.dark-mode .section-header {
+    border-bottom-color: #e0e0e0 !important;
+}
+
+body.dark-mode .history-item span:last-child {
+    background: #333 !important;
+    color: #e0e0e0 !important;
+    border-color: #e0e0e0 !important;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -84,7 +268,7 @@ a {
     justify-content: center;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 2000;
     pointer-events: none;
     /* Let clicks pass through around the nav */
 }
@@ -497,13 +681,46 @@ input[type="date"] {
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* --- Progress Bar --- */
+.progress-container {
+    width: 100%;
+    height: 24px;
+    background: #FFF;
+    border: 3px solid #000;
+    margin-top: 2rem;
+    position: relative;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar {
+    height: 100%;
+    background: #000;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+body.dark-mode .progress-container {
+    background: #333;
+    border-color: #e0e0e0;
+    box-shadow: 4px 4px 0px #e0e0e0;
+}
+
+body.dark-mode .progress-bar {
+    background: #e0e0e0;
+}
+
+body.dark-mode .loading-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode #loadingStatus,
+body.dark-mode #loadingPercent {
+    color: #e0e0e0;
 }
 
 /* --- Utilities --- */

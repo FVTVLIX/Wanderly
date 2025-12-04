@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -82,6 +83,32 @@ if os.getenv("GOOGLE_API_KEY"):
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     gemini_available = True
 
+# --- Encryption ---
+from cryptography.fernet import Fernet
+
+encryption_key = os.getenv("ENCRYPTION_KEY")
+cipher_suite = Fernet(encryption_key) if encryption_key else None
+
+def encrypt_value(value):
+    """Encrypts a string value."""
+    if not value or not cipher_suite:
+        return value
+    try:
+        return cipher_suite.encrypt(value.encode()).decode()
+    except Exception as e:
+        print(f"Encryption error: {e}")
+        return value
+
+def decrypt_value(value):
+    """Decrypts a string value."""
+    if not value or not cipher_suite:
+        return value
+    try:
+        return cipher_suite.decrypt(value.encode()).decode()
+    except Exception:
+        # If decryption fails, assume it's a legacy plain text key or invalid
+        return value
+
 # --- Helper Functions ---
 def mock_generation():
     """Returns hardcoded detailed strategies for testing."""
@@ -89,7 +116,15 @@ def mock_generation():
         {
             "title": "Strategy 1: The 'Kitchen of Japan' Deep Dive",
             "summary": "Focus entirely on the Kansai region (Osaka, Kyoto, Nara) to maximize food and history while saving on transport.",
-            "cost_breakdown": "Flights: $2600, Lodging: $800, Food: $1000, Transport: $300, Activities: $300",
+            "cost_breakdown": {
+                "flights": "$2600",
+                "lodging": "$800",
+                "food": "$1000",
+                "transport": "$300",
+                "activities": "$300",
+                "total": "$5000",
+                "currency": "USD"
+            },
             "itinerary": [
                 {"day": 1, "title": "Arrival in Osaka", "activities": [{"name": "Dotonbori Street Food", "type": "food", "description": "Eat Takoyaki and Okonomiyaki."}]},
                 {"day": 2, "title": "Kyoto History", "activities": [{"name": "Fushimi Inari Shrine", "type": "history", "description": "Hike the 1000 torii gates."}, {"name": "Nishiki Market", "type": "food", "description": "Kyoto's Kitchen."}]},
@@ -102,7 +137,15 @@ def mock_generation():
         {
             "title": "Strategy 2: The 'Samurai & Seafood' Route",
             "summary": "Pair Tokyo with Kanazawa ('Little Kyoto') for a deep dive into Samurai culture and fresh seafood.",
-            "cost_breakdown": "Flights: $2400, Lodging: $900, Food: $800, Transport: $600, Activities: $300",
+            "cost_breakdown": {
+                "flights": "$2400",
+                "lodging": "$900",
+                "food": "$800",
+                "transport": "$600",
+                "activities": "$300",
+                "total": "$5000",
+                "currency": "USD"
+            },
             "itinerary": [
                 {"day": 1, "title": "Tokyo Arrival", "activities": [{"name": "Shinjuku Omoide Yokocho", "type": "food", "description": "Yakitori alley dining."}]},
                 {"day": 2, "title": "Tokyo Edo History", "activities": [{"name": "Edo-Tokyo Museum", "type": "history", "description": "Learn about the Samurai era."}]},
@@ -115,7 +158,15 @@ def mock_generation():
         {
             "title": "Strategy 3: The 'Golden Route' Express",
             "summary": "The classic Tokyo and Kyoto itinerary condensed for 7 days, using 'smart luxury' to stay on budget.",
-            "cost_breakdown": "Flights: $2400, Lodging: $900, Food: $700, Transport: $700, Activities: $300",
+            "cost_breakdown": {
+                "flights": "$2400",
+                "lodging": "$900",
+                "food": "$700",
+                "transport": "$700",
+                "activities": "$300",
+                "total": "$5000",
+                "currency": "USD"
+            },
             "itinerary": [
                 {"day": 1, "title": "Tokyo Modern & Old", "activities": [{"name": "Meiji Shrine", "type": "history", "description": "Forest oasis in the city."}, {"name": "Harajuku Crepes", "type": "food", "description": "Famous sweet treat."}]},
                 {"day": 2, "title": "Kyoto Temples", "activities": [{"name": "Kiyomizu-dera", "type": "history", "description": "Wooden stage temple."}]},
@@ -135,7 +186,7 @@ def generate_strategies_llm(problem):
     Output strictly as a JSON list of objects. Each object must have:
     - 'title': string
     - 'summary': string (1-2 sentences)
-    - 'cost_breakdown': string (estimated costs)
+    - 'cost_breakdown': object with keys: 'flights', 'lodging', 'food', 'transport', 'activities', 'total', 'currency'. Estimate costs realistically.
     - 'itinerary': list of objects, each with 'day' (int), 'title' (string), and 'activities' (list of {{'name', 'type' (food/history/other), 'description'}}).
     - 'locations': list of objects with 'name', 'lat' (float), 'lon' (float) for major cities visited.
     """
@@ -143,9 +194,9 @@ def generate_strategies_llm(problem):
     content = None
     
     # Check for user-provided keys first
-    user_gemini_key = current_user.gemini_key if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
-    user_openai_key = current_user.openai_key if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
-    user_anthropic_key = current_user.anthropic_key if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
+    user_gemini_key = decrypt_value(current_user.gemini_key) if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
+    user_openai_key = decrypt_value(current_user.openai_key) if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
+    user_anthropic_key = decrypt_value(current_user.anthropic_key) if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
 
     print(f"Keys available - Gemini: {bool(user_gemini_key)}, OpenAI: {bool(user_openai_key)}, Anthropic: {bool(user_anthropic_key)}")
 
@@ -209,8 +260,21 @@ def generate_strategies_llm(problem):
         # Clean up potential markdown formatting
         content = content.replace('```json', '').replace('```', '').strip()
         
+        # Attempt to find the first '[' and last ']' to extract the list
+        import re
+        match = re.search(r'\[.*\]', content, re.DOTALL)
+        if match:
+            content = match.group(0)
+        
         # Ensure it's a list
-        data = json.loads(content)
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            # Fallback: Try to fix common JSON errors (like trailing commas)
+            # This is a simple heuristic; for production, a robust library like `json5` or `dirtyjson` is better.
+            # Here we just try to remove trailing commas before closing brackets/braces
+            content_fixed = re.sub(r',\s*([\]}])', r'\1', content)
+            data = json.loads(content_fixed)
         
         if isinstance(data, dict):
             if 'strategies' in data and isinstance(data['strategies'], list):
@@ -238,15 +302,15 @@ def critique_strategy_llm(strategy_content):
         content = None
 
         # Check for user-provided keys first
-        user_gemini_key = current_user.gemini_key if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
-        user_openai_key = current_user.openai_key if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
-        user_anthropic_key = current_user.anthropic_key if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
+        user_gemini_key = decrypt_value(current_user.gemini_key) if current_user.is_authenticated and current_user.gemini_key else os.getenv("GOOGLE_API_KEY")
+        user_openai_key = decrypt_value(current_user.openai_key) if current_user.is_authenticated and current_user.openai_key else os.getenv("OPENAI_API_KEY")
+        user_anthropic_key = decrypt_value(current_user.anthropic_key) if current_user.is_authenticated and current_user.anthropic_key else os.getenv("ANTHROPIC_API_KEY")
 
         # 1. Try Google Gemini
         if user_gemini_key:
             try:
                 genai.configure(api_key=user_gemini_key)
-                model = genai.GenerativeModel('gemini-pro')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
                 content = response.text
             except Exception as e:
@@ -302,7 +366,23 @@ def critique_strategy_llm(strategy_content):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    trending_searches = [
+        {"label": "Kyoto", "query": "Kyoto in Spring"},
+        {"label": "Iceland", "query": "Iceland Road Trip"},
+        {"label": "Amalfi", "query": "Amalfi Coast Luxury"},
+        {"label": "Tokyo", "query": "Tokyo Food Tour"},
+        {"label": "Paris", "query": "Paris Romantic Getaway"},
+        {"label": "Bali", "query": "Bali Wellness Retreat"},
+        {"label": "New York", "query": "NYC Art & Culture"},
+        {"label": "Patagonia", "query": "Patagonia Hiking Adventure"},
+        {"label": "Santorini", "query": "Santorini Sunset Views"},
+        {"label": "Cape Town", "query": "Cape Town Wine & Safari"},
+        {"label": "Swiss Alps", "query": "Swiss Alps Ski Trip"},
+        {"label": "Machu Picchu", "query": "Machu Picchu Trek"}
+    ]
+    # Select 4 random trending searches
+    selected_trending = random.sample(trending_searches, 4)
+    return render_template('index.html', trending=selected_trending)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -345,7 +425,12 @@ def logout():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    problem = request.form.get('problem') or request.form.get('query')
+    query = request.form.get('query')
+    origin = request.form.get('origin')
+    
+    problem = query
+    if origin:
+        problem = f"{query} (Starting from {origin})"
     
     # 1. Generate Strategies (Mock or Real)
     # Check if ANY key is available (User or System)
@@ -407,6 +492,10 @@ def profile():
     history = SearchHistory.query.filter_by(user_id=current_user.id).order_by(SearchHistory.timestamp.desc()).limit(10).all()
     saved_raw = SavedStrategy.query.filter_by(user_id=current_user.id).all()
     trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.asc()).all()
+    
+    trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.asc()).all()
+    
+    trips = Trip.query.filter_by(user_id=current_user.id).order_by(Trip.start_date.asc()).all()
     return render_template('profile.html', trips=trips, saved_strategies=saved_raw, search_history=history)
 
 @app.route('/save_strategy', methods=['POST'])
@@ -455,9 +544,12 @@ def delete_strategy(id):
         flash('You cannot delete this strategy.')
         return redirect(url_for('profile'))
     
-    # Optional: Delete associated trips if you want strict cleanup, 
-    # but cascading delete might handle it or we leave them.
-    # For now, let's just delete the strategy.
+    # Delete associated trips first
+    # Unlink associated trips instead of deleting them
+    associated_trips = Trip.query.filter_by(strategy_id=id).all()
+    for trip in associated_trips:
+        trip.strategy_id = None
+    
     db.session.delete(strategy)
     db.session.commit()
     flash('Strategy deleted successfully.')
@@ -517,6 +609,19 @@ def add_trip():
     db.session.commit()
     return redirect(url_for('profile'))
 
+@app.route('/delete_trip/<int:id>', methods=['POST'])
+@login_required
+def delete_trip(id):
+    trip = Trip.query.get_or_404(id)
+    if trip.user_id != current_user.id:
+        flash('You cannot delete this trip.')
+        return redirect(url_for('profile'))
+    
+    db.session.delete(trip)
+    db.session.commit()
+    flash('Trip cancelled successfully.')
+    return redirect(url_for('profile'))
+
 @app.route('/settings')
 @login_required
 def settings():
@@ -526,9 +631,9 @@ def settings():
 @app.route('/update_api_keys', methods=['POST'])
 @login_required
 def update_api_keys():
-    current_user.openai_key = request.form.get('openai_key')
-    current_user.anthropic_key = request.form.get('anthropic_key')
-    current_user.gemini_key = request.form.get('gemini_key')
+    current_user.openai_key = encrypt_value(request.form.get('openai_key'))
+    current_user.anthropic_key = encrypt_value(request.form.get('anthropic_key'))
+    current_user.gemini_key = encrypt_value(request.form.get('gemini_key'))
     db.session.commit()
     flash('API Keys updated successfully.')
     return redirect(url_for('settings'))
@@ -538,6 +643,10 @@ def update_api_keys():
 def verify_api_key():
     data = request.json
     provider = data.get('provider')
+    # The key coming from the frontend might be the raw input (if testing before saving)
+    # or it might be the saved encrypted key if we were to implement a "Test Saved Key" feature.
+    # For now, this route is likely used by a "Test" button next to the input field, sending the raw input.
+    # However, if we want to be safe, we can check.
     key = data.get('key')
     
     if not key:
@@ -546,7 +655,7 @@ def verify_api_key():
     try:
         if provider == 'gemini':
             genai.configure(api_key=key)
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             # Simple generation test
             model.generate_content("Hello", generation_config={"max_output_tokens": 5})
             return jsonify({'status': 'success'})
