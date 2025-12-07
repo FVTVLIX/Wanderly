@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -19,7 +20,7 @@
             <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
             <div class="nav-links">
                 <a href="{{ url_for('index') }}">Home</a>
-                <a href="{{ url_for('login') }}" class="btn-secondary-sm">Login</a>
+                <a href="{{ url_for('login') }}">Login</a>
                 <button id="darkModeToggle" class="btn-secondary-sm"
                     style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-moon"></i>
@@ -29,53 +30,125 @@
     </nav>
 
     <div class="container">
-        <div class="auth-container">
-            <h2 class="serif-italic"
-                style="text-align: center; margin-bottom: 2rem; font-size: 3rem; transform: rotate(-2deg);">Join
-                Wanderly</h2>
+        <div class="split-layout">
+            <!-- Left: Benefits (Colorful & Aesthetic) -->
+            <div class="benefits-container">
+                <h2 class="serif-italic" style="font-size: 3.5rem; line-height: 1; margin-bottom: 2rem;">
+                    Unlock the<br>
+                    <span style="color: #FF6B6B; text-shadow: 2px 2px 0px #000;">Full Experience</span>
+                </h2>
 
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <div class="flash-messages"
-                style="margin-bottom: 1rem; color: #000; text-align: center; font-weight: 700; background: #FFDAC1; padding: 0.5rem; border: 2px solid #000;">
-                {% for message in messages %}
-                <p>{{ message }}</p>
-                {% endfor %}
+                <div class="perk-card" style="background: var(--accent-1); transform: rotate(-2deg);">
+                    <i class="fa-solid fa-cloud-arrow-up perk-icon"></i>
+                    <div>
+                        <h3>Save Your Trips</h3>
+                        <p>Keep your favorite strategies forever. No more lost tabs.</p>
+                    </div>
+                </div>
+
+                <div class="perk-card" style="background: var(--accent-3); transform: rotate(1deg); margin-left: 2rem;">
+                    <i class="fa-solid fa-key perk-icon"></i>
+                    <div>
+                        <h3>Bring Your Keys</h3>
+                        <p>Plug in your own Gemini, OpenAI, or Claude keys for unlimited power.</p>
+                    </div>
+                </div>
+
+                <div class="perk-card" style="background: var(--accent-4); transform: rotate(-1deg);">
+                    <i class="fa-solid fa-history perk-icon"></i>
+                    <div>
+                        <h3>Travel History</h3>
+                        <p>Look back at everywhere you've planned to go.</p>
+                    </div>
+                </div>
+
+                <div class="perk-sticker" style="margin-top: 2rem;">
+                    <span
+                        style="background: #000; color: #FFF; padding: 0.5rem 1rem; font-family: var(--font-display); font-size: 1.5rem; transform: rotate(-5deg); display: inline-block;">ALWAYS
+                        FREE</span>
+                </div>
             </div>
-            {% endif %}
-            {% endwith %}
 
-            <form action="{{ url_for('register') }}" method="POST">
-                <div class="input-group">
-                    <label>Username</label>
-                    <div class="input-wrapper">
-                        <input type="text" name="username" required placeholder="Traveler123">
-                    </div>
+            <!-- Right: Auth Form -->
+            <div class="auth-container" style="margin: 0; max-width: 100%;">
+                <h2 class="serif-italic"
+                    style="text-align: center; margin-bottom: 2rem; font-size: 3rem; transform: rotate(-2deg);">Join
+                    Wanderly</h2>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div class="flash-messages"
+                    style="margin-bottom: 1rem; color: #000; text-align: center; font-weight: 700; background: #FFDAC1; padding: 0.5rem; border: 2px solid #000;">
+                    {% for message in messages %}
+                    <p>{{ message }}</p>
+                    {% endfor %}
                 </div>
+                {% endif %}
+                {% endwith %}
 
-                <div class="input-group">
-                    <label>Email Address</label>
-                    <div class="input-wrapper">
-                        <input type="email" name="email" required placeholder="you@example.com">
+                <form action="{{ url_for('register') }}" method="POST">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <div class="input-wrapper">
+                            <input type="text" name="username" required placeholder="Traveler123">
+                        </div>
                     </div>
-                </div>
 
-                <div class="input-group">
-                    <label>Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" name="password" required placeholder="••••••••">
+                    <div class="input-group">
+                        <label>Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" name="email" required placeholder="you@example.com">
+                        </div>
                     </div>
+
+                    <div class="input-group">
+                        <label>Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" name="password" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Create
+                        Account</button>
+                </form>
+
+                <div class="auth-link" style="margin-top: 2rem; font-weight: 600; text-align: center;">
+                    <p>Already have an account? <a href="{{ url_for('login') }}"
+                            style="text-decoration: underline;">Login</a></p>
                 </div>
-
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
-            </form>
-
-            <div class="auth-link" style="margin-top: 2rem; font-weight: 600;">
-                <p>Already have an account? <a href="{{ url_for('login') }}"
-                        style="text-decoration: underline;">Login</a></p>
             </div>
         </div>
     </div>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">WANDERLY</div>
+                <p style="max-width: 300px; margin-top: 1rem; color: #aaa;">
+                    Your AI-powered passport to the world's best kept secrets.
+                </p>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}" class="footer-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="footer-link">My Profile</a>
+                <a href="{{ url_for('settings') }}" class="footer-link">Settings</a>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2024 Wanderly AI. All rights reserved.</div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" style="text-decoration: underline;">Privacy Policy</a>
+                <a href="#" style="text-decoration: underline;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
     <script>
         // Dark Mode Logic
         const toggleBtn = document.getElementById('darkModeToggle');

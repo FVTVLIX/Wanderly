@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -19,7 +20,7 @@
             <a href="{{ url_for('index') }}" class="nav-logo">WANDERLY</a>
             <div class="nav-links">
                 <a href="{{ url_for('index') }}">Home</a>
-                <a href="{{ url_for('register') }}" class="btn-primary-sm">Sign Up</a>
+                <a href="{{ url_for('register') }}">Sign Up</a>
                 <button id="darkModeToggle" class="btn-secondary-sm"
                     style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
                     <i class="fa-solid fa-moon"></i>
@@ -33,6 +34,14 @@
             <h2 class="serif-italic"
                 style="text-align: center; margin-bottom: 2rem; font-size: 3rem; transform: rotate(-2deg);">Welcome Back
             </h2>
+
+            <div
+                style="background: var(--accent-2); border: 2px solid #000; padding: 1rem; margin-bottom: 2rem; transform: rotate(1deg); box-shadow: 4px 4px 0px #000; max-width: 400px; margin-left: auto; margin-right: auto;">
+                <p style="font-weight: 600; font-size: 1.1rem; text-align: center;">
+                    Back for more? Excellent. The globe was getting lonely without you. Let's plan something
+                    irresponsible (or strictly budgeted, we don't judge).
+                </p>
+            </div>
 
             {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -69,6 +78,36 @@
             </div>
         </div>
     </div>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">WANDERLY</div>
+                <p style="max-width: 300px; margin-top: 1rem; color: #aaa;">
+                    Your AI-powered passport to the world's best kept secrets.
+                </p>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}" class="footer-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="footer-link">My Profile</a>
+                <a href="{{ url_for('settings') }}" class="footer-link">Settings</a>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2024 Wanderly AI. All rights reserved.</div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" style="text-decoration: underline;">Privacy Policy</a>
+                <a href="#" style="text-decoration: underline;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
     <script>
         // Dark Mode Logic
         const toggleBtn = document.getElementById('darkModeToggle');
