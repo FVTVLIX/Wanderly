@@ -1,4 +1,4 @@
-# Wanderly: AI-Powered Travel Strategist 🌍 ✈️
+# Wanderly: AI-Powered Travel Strategist 
 
 > **"Where dreams become journeys, guided by the wisdom of the machine."**
 
@@ -8,7 +8,7 @@ By leveraging Large Language Models (LLMs) like **Google Gemini**, **OpenAI GPT-
 
 ---
 
-## 🧠 The Engine: Tree of Thoughts (ToT) Implementation
+## The Engine: Tree of Thoughts (ToT) Implementation
 
 Traditional travel apps are linear: you input dates and a destination, and they output a list of hotels. Wanderly thinks differently. It treats travel planning as a **complex reasoning problem** requiring exploration, evaluation, and selection.
 
@@ -26,16 +26,16 @@ Generating options is easy; evaluating them is hard. Wanderly employs a secondar
 
 This agent does not know which model generated the strategy. It evaluates purely on output quality based on three pillars:
 
-*   **Feasibility 🛠️:** Is the travel logistics realistic? Are the timelines too tight?
-*   **Balance ⚖️:** Does the itinerary mix activity types (food, history, relaxation) effectively, or is it monotonic?
-*   **Budget 💸:** Is the estimated cost breakdown realistic for the described activities and region?
+*   **Feasibility :** Is the travel logistics realistic? Are the timelines too tight?
+*   **Balance :** Does the itinerary mix activity types (food, history, relaxation) effectively, or is it monotonic?
+*   **Budget :** Is the estimated cost breakdown realistic for the described activities and region?
 
 ### 3. The "Selection" Phase (Ranking)
 The application aggregates the scores provided by The Critic (0-10 scale) and presents the strategies to the user ranked from highest to lowest quality. This ensures the user sees the most robust underlying reasoning first.
 
 ---
 
-## 🛠️ Technical Architecture
+## Technical Architecture
 
 Wanderly is built as a robust **Flask** application designed for extensibility and modular AI integration.
 
@@ -58,7 +58,7 @@ The application implements a **Multi-Provider Fallback System**. It creates a re
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these steps to run Wanderly locally on your machine.
 
