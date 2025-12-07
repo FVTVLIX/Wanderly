@@ -114,6 +114,36 @@
         {% endfor %}
     </div>
 
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">WANDERLY</div>
+                <p style="max-width: 300px; margin-top: 1rem; color: #aaa;">
+                    Your AI-powered passport to the world's best kept secrets.
+                </p>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}" class="footer-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="footer-link">My Profile</a>
+                <a href="{{ url_for('settings') }}" class="footer-link">Settings</a>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2024 Wanderly AI. All rights reserved.</div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" style="text-decoration: underline;">Privacy Policy</a>
+                <a href="#" style="text-decoration: underline;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
     <script>
         // Dark Mode Logic
         const toggleBtn = document.getElementById('darkModeToggle');

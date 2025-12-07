@@ -71,7 +71,8 @@ body.dark-mode .input-wrapper {
     background: #2d2d2d;
 }
 
-body.dark-mode input {
+body.dark-mode input,
+body.dark-mode textarea {
     color: #e0e0e0;
 }
 
@@ -309,6 +310,14 @@ a {
     color: var(--bg-main);
 }
 
+.nav-links a.btn-secondary-sm {
+    color: #000;
+}
+
+.nav-links a.btn-secondary-sm:hover {
+    color: #000 !important;
+}
+
 /* --- Layout Containers --- */
 .container {
     max-width: 1200px;
@@ -388,7 +397,8 @@ a {
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="date"] {
+input[type="date"],
+textarea {
     width: 100%;
     padding: 1.5rem;
     border: none;
@@ -397,6 +407,11 @@ input[type="date"] {
     font-size: 1.1rem;
     font-weight: 600;
     background: transparent;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 60px;
 }
 
 .btn-search {
@@ -668,22 +683,58 @@ input[type="date"] {
 
 .loader-content {
     text-align: center;
+    /* Removed fixed width/height to allow text to flow naturally */
 }
 
-.spinner {
-    width: 60px;
-    height: 60px;
-    border: 8px solid #FFF;
-    border-top: 8px solid #000;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
+.animation-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-@keyframes spin {
+.globe-icon {
+    font-size: 4rem;
+    color: #000;
+    z-index: 1;
+}
+
+.plane-orbit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: orbit 2s linear infinite;
+    z-index: 2;
+}
+
+.plane-icon {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) rotate(0deg);
+    /* Adjust rotation to look like it's flying forward */
+    font-size: 1.5rem;
+    color: #000;
+}
+
+@keyframes orbit {
+    0% {
+        transform: rotate(0deg);
+    }
+
     100% {
         transform: rotate(360deg);
     }
+}
+
+body.dark-mode .globe-icon,
+body.dark-mode .plane-icon {
+    color: #e0e0e0;
 }
 
 /* --- Progress Bar --- */
@@ -730,6 +781,385 @@ body.dark-mode #loadingPercent {
     /* Anton doesn't really do italic well, keep it bold */
 }
 
+/* --- How It Works --- */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.step-card {
+    background: #FFF;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-hard);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.step-card:hover {
+    transform: translateY(-5px);
+}
+
+.step-number {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    position: absolute;
+    top: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #FFF;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 4px solid #FFF;
+}
+
+/* --- Testimonials --- */
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+    margin-bottom: 4rem;
+}
+
+.testimonial-card {
+    background: #FFF;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-hard);
+    padding: 2rem;
+    position: relative;
+}
+
+.testimonial-card:nth-child(odd) {
+    transform: rotate(-1deg);
+}
+
+.testimonial-card:nth-child(even) {
+    transform: rotate(1deg);
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    background: #000;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    border: 2px solid #000;
+}
+
+/* --- Pricing --- */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    align-items: start;
+}
+
+.pricing-card {
+    background: #FFF;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-hard);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.pricing-card.featured {
+    transform: scale(1.05);
+    z-index: 10;
+    border-width: 4px;
+}
+
+.price-tag {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    margin: 1rem 0;
+}
+
+.price-period {
+    font-size: 1rem;
+    color: #666;
+    font-family: var(--font-body);
+}
+
+.feature-list {
+    list-style: none;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.feature-list li {
+    margin-bottom: 0.8rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.feature-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    font-weight: 800;
+}
+
+/* Dark Mode Overrides for New Sections */
+body.dark-mode .step-card,
+body.dark-mode .testimonial-card,
+body.dark-mode .pricing-card {
+    background: #2d2d2d;
+    border-color: #e0e0e0;
+    color: #e0e0e0;
+    box-shadow: 6px 6px 0px #e0e0e0;
+}
+
+body.dark-mode .step-number {
+    background: #e0e0e0;
+    color: #000;
+    border-color: #2d2d2d;
+}
+
+body.dark-mode .price-period {
+    color: #aaa;
+}
+
 .text-muted {
     color: #666;
+}
+
+/* --- Footer --- */
+.site-footer {
+    background: #000;
+    color: #FFF;
+    padding: 4rem 2rem 2rem;
+    margin-top: 4rem;
+    border-top: var(--border-thick);
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4rem;
+    align-items: center;
+}
+
+.footer-logo {
+    font-family: var(--font-display);
+    font-size: 12rem;
+    /* Increased from 8rem */
+    line-height: 0.8;
+    text-transform: uppercase;
+    color: transparent;
+    -webkit-text-stroke: 2px #FFF;
+    position: relative;
+    display: inline-block;
+    transition: all 0.3s ease;
+    cursor: default;
+    width: 100%;
+    /* Ensure it takes full width if needed */
+    text-align: left;
+}
+
+/* ... (keep existing pseudo-elements) ... */
+
+.footer-logo:hover {
+    transform: skewX(-10deg) translateX(10px);
+    text-shadow: 8px 8px 0px var(--accent-1);
+    /* Increased shadow */
+}
+
+/* ... */
+
+/* Dark Mode Footer Adjustments */
+body.dark-mode .site-footer {
+    background: #111;
+    border-top-color: #e0e0e0;
+}
+
+body.dark-mode .footer-logo {
+    -webkit-text-stroke: 2px #e0e0e0;
+}
+
+body.dark-mode .footer-logo::before {
+    color: var(--accent-3);
+    /* Ensure fill color is visible */
+}
+
+body.dark-mode .footer-logo:hover {
+    text-shadow: 8px 8px 0px var(--accent-2);
+    /* Different shadow color for dark mode */
+}
+
+body.dark-mode .footer-link:hover {
+    color: var(--accent-1);
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: right;
+}
+
+.footer-link {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: #FFF;
+    text-transform: uppercase;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.footer-link:hover {
+    color: var(--accent-2);
+    transform: translateX(-5px);
+}
+
+.footer-socials {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    background: #FFF;
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    transition: transform 0.2s, background 0.2s;
+    border: 2px solid #000;
+    /* In case background is white */
+}
+
+.social-icon:hover {
+    transform: translateY(-5px) rotate(10deg);
+    background: var(--accent-1);
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 3rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .footer-logo {
+        font-size: 4rem;
+    }
+
+    .footer-links {
+        text-align: center;
+        align-items: center;
+    }
+
+    .footer-socials {
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+/* Dark Mode Footer Adjustments */
+body.dark-mode .site-footer {
+    background: #111;
+    border-top-color: #e0e0e0;
+}
+
+body.dark-mode .footer-logo {
+    -webkit-text-stroke: 2px #e0e0e0;
+}
+
+body.dark-mode .footer-bottom {
+    border-top-color: #444;
+}
+
+/* --- Split Layout (Register Page) --- */
+.split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 900px) {
+    .split-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .benefits-container {
+        text-align: center;
+        order: -1;
+    }
+
+    .perk-card {
+        margin-left: 0 !important;
+        justify-content: center;
+        text-align: left;
+    }
+}
+
+.perk-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-hard);
+    margin-bottom: 2rem;
+    transition: transform 0.2s;
+}
+
+.perk-card:hover {
+    transform: scale(1.02) !important;
+    z-index: 10;
+}
+
+.perk-icon {
+    font-size: 2rem;
+    color: #000;
+}
+
+.benefits-container h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+body.dark-mode .perk-card {
+    border-color: #e0e0e0;
+    box-shadow: 6px 6px 0px #e0e0e0;
+    color: #000;
+    /* Keep text black in colored cards for contrast */
 }

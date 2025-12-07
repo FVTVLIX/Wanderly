@@ -49,23 +49,25 @@
                             autocomplete="off">
                     </div>
                     <div style="display: flex; width: 100%;">
-                        <i class="fa-solid fa-magnifying-glass search-icon" style="padding-top: 1.5rem;"></i>
-                        <input type="text" name="query" placeholder="Where do you want to go?" required
-                            autocomplete="off">
-                        <button type="submit" class="btn-search">
+                        <i class="fa-solid fa-magnifying-glass search-icon"
+                            style="padding-top: 1.5rem; align-self: flex-start;"></i>
+                        <textarea name="query" placeholder="Where do you want to go?" required
+                            style="flex: 1; padding: 1.5rem; border: none; outline: none; font-family: var(--font-body); font-size: 1.1rem; font-weight: 600; background: transparent; resize: none; min-height: 100px;"></textarea>
+                        <button type="submit" class="btn-search" style="height: auto;">
                             Let's Go <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
-            </form>
+        </div>
+        </form>
 
-            <div class="hero-tags">
-                <span
-                    style="background: #000; color: #FFF; padding: 0.2rem 0.5rem; transform: rotate(-2deg);">Trending:</span>
-                {% for item in trending %}
-                <button type="button" onclick="fillSearch('{{ item.query }}')">{{ item.label }}</button>
-                {% endfor %}
-            </div>
+        <div class="hero-tags">
+            <span
+                style="background: #000; color: #FFF; padding: 0.2rem 0.5rem; transform: rotate(-2deg);">Trending:</span>
+            {% for item in trending %}
+            <button type="button" onclick="fillSearch('{{ item.query }}')">{{ item.label }}</button>
+            {% endfor %}
+        </div>
         </div>
     </section>
 
@@ -141,10 +143,158 @@
         </div>
     </section>
 
+    <!-- How It Works -->
+    <section class="container" style="margin-bottom: 6rem;">
+        <div class="section-header" style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-size: 3rem; transform: rotate(-1deg);">How It Works</h2>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card" style="background: var(--accent-1);">
+                <div class="step-number">1</div>
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Dream It</h3>
+                <p>Tell us where you want to go, or just give us a vibe. "Sushi in Tokyo" or "Relaxing in Bali".</p>
+            </div>
+            <div class="step-card" style="background: var(--accent-2);">
+                <div class="step-number">2</div>
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Plan It</h3>
+                <p>Our AI agents compete to build the perfect itinerary, complete with costs and hidden gems.</p>
+            </div>
+            <div class="step-card" style="background: var(--accent-3);">
+                <div class="step-number">3</div>
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Live It</h3>
+                <p>Save your strategy, sync it to your calendar (coming soon!), and start your adventure.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews -->
+    <section class="container" style="margin-bottom: 6rem;">
+        <div class="section-header" style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-size: 3rem; transform: rotate(1deg);">Love from Travelers</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="background: #FF6B6B;"></div>
+                    <div>
+                        <h4 style="margin-bottom: 0;">Sarah J.</h4>
+                        <div style="color: #FFD700;">★★★★★</div>
+                    </div>
+                </div>
+                <p>"Wanderly found a ramen shop in Osaka that wasn't on any other blog. It was life-changing!"</p>
+            </div>
+            <div class="testimonial-card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="background: #4ECDC4;"></div>
+                    <div>
+                        <h4 style="margin-bottom: 0;">Mike T.</h4>
+                        <div style="color: #FFD700;">★★★★★</div>
+                    </div>
+                </div>
+                <p>"I planned a 2-week Patagonia trip in 5 minutes. The cost breakdown was surprisingly accurate."</p>
+            </div>
+            <div class="testimonial-card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="user-avatar" style="background: #FFE66D;"></div>
+                    <div>
+                        <h4 style="margin-bottom: 0;">Jessica L.</h4>
+                        <div style="color: #FFD700;">★★★★★</div>
+                    </div>
+                </div>
+                <p>"Finally, an AI that understands 'budget-friendly' doesn't mean 'boring'. Highly recommend!"</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="container" style="margin-bottom: 6rem;">
+        <div class="section-header" style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-size: 3rem; transform: rotate(-1deg);">Travel Your Way</h2>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Day Tripper</h3>
+                <div class="price-tag">$0<span class="price-period">/mo</span></div>
+                <p style="margin-bottom: 2rem;">Perfect for the occasional explorer.</p>
+                <ul class="feature-list">
+                    <li>3 AI Searches per day</li>
+                    <li>Basic Itineraries</li>
+                    <li>Save up to 5 trips</li>
+                </ul>
+                <a href="{{ url_for('register') }}" class="btn-secondary-sm"
+                    style="width: 100%; text-align: center;">Get Started</a>
+            </div>
+            <div class="pricing-card featured" style="background: var(--accent-4);">
+                <div
+                    style="position: absolute; top: -1rem; right: -1rem; background: #000; color: #FFF; padding: 0.5rem 1rem; transform: rotate(5deg); font-weight: 700; font-family: var(--font-display);">
+                    BEST VALUE</div>
+                <h3>Globetrotter</h3>
+                <div class="price-tag">$9<span class="price-period">/mo</span></div>
+                <p style="margin-bottom: 2rem;">For the serious wanderluster.</p>
+                <ul class="feature-list">
+                    <li>Unlimited Searches</li>
+                    <li>Advanced AI Models (GPT-4)</li>
+                    <li>Detailed Cost Breakdowns</li>
+                    <li>Priority Support</li>
+                </ul>
+                <a href="{{ url_for('register') }}" class="btn-primary" style="width: 100%; text-align: center;">Go
+                    Pro</a>
+            </div>
+            <div class="pricing-card">
+                <h3>Nomad</h3>
+                <div class="price-tag">$29<span class="price-period">/mo</span></div>
+                <p style="margin-bottom: 2rem;">For digital nomads and agencies.</p>
+                <ul class="feature-list">
+                    <li>Everything in Globetrotter</li>
+                    <li>API Access</li>
+                    <li>White-label Itineraries</li>
+                    <li>Team Collaboration</li>
+                </ul>
+                <a href="#" class="btn-secondary-sm" style="width: 100%; text-align: center;">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">WANDERLY</div>
+                <p style="max-width: 300px; margin-top: 1rem; color: #aaa;">
+                    Your AI-powered passport to the world's best kept secrets.
+                </p>
+            </div>
+            <div class="footer-links">
+                <a href="{{ url_for('index') }}" class="footer-link">Home</a>
+                <a href="{{ url_for('profile') }}" class="footer-link">My Profile</a>
+                <a href="{{ url_for('settings') }}" class="footer-link">Settings</a>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2024 Wanderly AI. All rights reserved.</div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" style="text-decoration: underline;">Privacy Policy</a>
+                <a href="#" style="text-decoration: underline;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="loader-content">
-            <div class="spinner"></div>
+            <div class="animation-container">
+                <i class="fa-solid fa-earth-americas globe-icon"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                <div class="plane-orbit">
+                    <i class="fa-solid fa-plane plane-icon"></i>
+                </div>
+            </div>
             <h3 class="loading-title" style="margin-top: 1rem; font-family: 'Anton', sans-serif; letter-spacing: 1px;">
                 CRAFTING YOUR JOURNEY...</h3>
 
@@ -156,6 +306,10 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-weight: 700;">
                 <span id="loadingStatus">Initializing...</span>
                 <span id="loadingPercent">0%</span>
+            </div>
+            <div id="delayedMessage" class="hidden"
+                style="margin-top: 1rem; font-style: italic; font-size: 0.9rem; color: #555; text-align: center;">
+                (Wanderly is debating the best routes... please don't refresh!)
             </div>
         </div>
     </div>
@@ -188,7 +342,7 @@
         });
 
         function fillSearch(text) {
-            const input = document.querySelector('input[name="query"]');
+            const input = document.querySelector('textarea[name="query"]');
             if (input) {
                 input.value = text;
                 input.focus();
@@ -208,6 +362,7 @@
             const progressBar = document.getElementById('progressBar');
             const statusText = document.getElementById('loadingStatus');
             const percentText = document.getElementById('loadingPercent');
+            const delayedMessage = document.getElementById('delayedMessage');
 
             const messages = [
                 "Packing virtual bags...",
@@ -222,24 +377,68 @@
 
             let progress = 0;
             let messageIndex = 0;
+            let lastProgress = 0;
+            let stuckTicks = 0;
+
+            // Define points where we intentionally stall to simulate "thinking"
+            // [trigger_percent, stall_duration_ticks] (1 tick = 100ms)
+            // Stall for 40 ticks (4s) at 35% and 75% to trigger the message
+            let forcedStalls = [
+                { at: 35, duration: 40, active: true },
+                { at: 75, duration: 40, active: true }
+            ];
+            let currentStallTimer = 0;
 
             const interval = setInterval(() => {
-                // Random increment between 1 and 3
-                progress += Math.random() * 2 + 0.5;
+                let shouldMove = true;
 
-                // Cap at 95% until actual load completes
-                if (progress > 95) {
-                    progress = 95;
+                // Check for forced stalls
+                for (let stall of forcedStalls) {
+                    if (stall.active && progress >= stall.at && progress < stall.at + 2) {
+                        shouldMove = false;
+                        currentStallTimer++;
+                        if (currentStallTimer >= stall.duration) {
+                            stall.active = false; // Stall complete
+                            currentStallTimer = 0;
+                        }
+                        break;
+                    }
                 }
 
-                // Update width and text
+                // Cap at 95%
+                if (progress >= 95) {
+                    progress = 95;
+                    shouldMove = false;
+                }
+
+                if (shouldMove) {
+                    // Random increment
+                    progress += Math.random() * 2 + 0.5;
+                }
+
+                // Update UI
                 progressBar.style.width = `${progress}%`;
                 percentText.textContent = `${Math.round(progress)}%`;
 
-                // Change message every ~15 ticks (approx 1.5s)
-                if (Math.round(progress) % 15 === 0) {
+                // Message rotation
+                if (Math.round(progress) % 15 === 0 && shouldMove) {
                     messageIndex = (messageIndex + 1) % messages.length;
                     statusText.textContent = messages[messageIndex];
+                }
+
+                // Stuck detection
+                if (Math.abs(progress - lastProgress) < 0.1) {
+                    stuckTicks++;
+                } else {
+                    stuckTicks = 0;
+                    lastProgress = progress;
+                    // Hide message if we start moving again
+                    delayedMessage.classList.add('hidden');
+                }
+
+                // Show message if stuck for > 3 seconds (30 ticks)
+                if (stuckTicks > 30) {
+                    delayedMessage.classList.remove('hidden');
                 }
 
             }, 100); // Update every 100ms
